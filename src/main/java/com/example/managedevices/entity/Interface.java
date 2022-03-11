@@ -24,10 +24,10 @@ public class Interface {
     String ipAddress;
 
     @Column(columnDefinition = "boolean default true")
-    boolean state;
+    boolean state=true;
 
     @Column(columnDefinition = "boolean default false")
-    boolean dhcp;
+    boolean dhcp=false;
 
     @Column
     String netmask;

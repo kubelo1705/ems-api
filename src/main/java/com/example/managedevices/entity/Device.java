@@ -37,7 +37,10 @@ public class Device {
     String serialNumber;
 
     @Column(columnDefinition = "integer default 22")
-    int port;
+    int port=22;
+
+    @Column(columnDefinition = "boolean default false")
+    boolean status=false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "credential_id",nullable = false)
@@ -48,5 +51,8 @@ public class Device {
     Set<Interface> interfaces;
 
     @OneToMany (mappedBy = "device",fetch = FetchType.LAZY)
-    Set<Interface> ports;
+    Set<Port> ports;
+
+    @OneToMany(mappedBy = "device",fetch = FetchType.LAZY)
+    Set<NtpServer> ntpServers;
 }

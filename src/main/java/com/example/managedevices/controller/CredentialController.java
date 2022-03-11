@@ -22,17 +22,21 @@ public class CredentialController {
 
     @PostMapping("add")
     public ResponseEntity<?> addCredential(@Valid @RequestBody Credential credential){
-        return ResponseEntity.ok(credentialService.saveCredential(credential));
+        try{
+            return ResponseEntity.ok(credentialService.addCredential(credential));
+        }catch (Exception e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("{id}")
     public ResponseEntity<?> updateCredential(@PathVariable Optional<Long> id, @Valid @RequestBody Credential credential) {
         if (id.isPresent()) {
-            if (credentialService.checkCredentialId(id.get())) {
-                credential.setId(id.get());
-                return ResponseEntity.ok(credentialService.saveCredential(credential));
+            try{
+                return ResponseEntity.ok(credentialService.updateCredential(credential,id.get()));
+            }catch (Exception e){
+                return ResponseEntity.badRequest().body(e.getMessage());
             }
-            return ResponseEntity.badRequest().body(Message.NON_EXIST_CREDENTIAL);
         }else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
@@ -41,17 +45,10 @@ public class CredentialController {
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteCredential(@PathVariable Optional<Long> id, @Valid @RequestBody Credential credential) {
         if (id.isPresent()) {
-            if (credentialService.checkCredentialId(id.get())) {
-                if(!credentialService.isUsed(id.get()))
-                    return ResponseEntity.ok(credentialService.saveCredential(credential));
-                else
-                    return ResponseEntity.badRequest().body(Message.CREDENTIAL_IS_USED);
-            }
-            return ResponseEntity.badRequest().body(Message.NON_EXIST_CREDENTIAL);
+            credentialService.deleteCredential(id.get());
+            return ResponseEntity.ok(Message.DELETE_SUCCESSFUL);
         }else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
     }
-
-
 }

@@ -6,7 +6,9 @@ import java.util.List;
 
 public interface CredentialService {
     List<Credential> getAllCredentials();
-    Credential saveCredential(Credential credential);
+    Credential addCredential(Credential credential);
     boolean checkCredentialId(Long id);
     boolean isUsed(Long id);
+    Credential updateCredential(Credential credential,Long id);
+    void deleteCredential(Long id);
 }

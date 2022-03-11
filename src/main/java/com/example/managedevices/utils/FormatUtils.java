@@ -17,9 +17,12 @@ public class FormatUtils {
         return map;
     }
 
-    public static String[] toInterfaceConfiguration(String configuration){
-        String formattedConfiguration=configuration.replaceAll("\\s+"," ");
-        String[] properties=formattedConfiguration.split(" ");
-        return properties;
+    public static String[] toArrayConfigurations(String configurations){
+        return configurations.split("\n");
+    }
+
+    public static String[] toArrayProperties(String properties){
+        String formattedConfiguration=properties.replaceAll("\\s+"," ");
+        return formattedConfiguration.split(" ");
     }
 }

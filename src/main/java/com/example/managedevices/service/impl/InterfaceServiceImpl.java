@@ -19,7 +19,7 @@ public class InterfaceServiceImpl implements InterfaceService {
     private final DeviceRepo deviceRepo;
 
     @Override
-    public List<Interface> getAllInterface() {
+    public List<Interface> getAllInterfaces() {
         return interfaceRepo.findAll();
     }
 
@@ -30,7 +30,14 @@ public class InterfaceServiceImpl implements InterfaceService {
 
     @Override
     public Interface addInterface(Interface interfaceAdd) {
-        return interfaceRepo.save(interfaceAdd);
+        if (!CheckInterfaceId(interfaceAdd.getId())) {
+            if (checkValidInterface(interfaceAdd)) {
+                return interfaceRepo.save(interfaceAdd);
+            } else {
+                throw new DeviceException(Message.INVALID_DATA);
+            }
+        }
+        throw new DeviceException(Message.DUPLICATE_ID);
     }
 
     @Override
@@ -39,18 +46,18 @@ public class InterfaceServiceImpl implements InterfaceService {
     }
 
     @Override
-    public boolean checkIpAddress(Interface interfaceCheck){
+    public boolean checkIpAddress(Interface interfaceCheck) {
         return EntityValidator.isValidIp(interfaceCheck.getIpAddress());
     }
 
     @Override
     public boolean checkDevice(Interface interfaceCheck) {
-        return deviceRepo.findById(interfaceCheck.getId())!=null?true:false;
+        return deviceRepo.findById(interfaceCheck.getId()) != null ? true : false;
     }
 
     @Override
     public boolean CheckInterfaceId(Long id) {
-        return interfaceRepo.findInterfaceById(id)!=null?true:false;
+        return interfaceRepo.findInterfaceById(id) != null ? true : false;
     }
 
     @Override
@@ -68,7 +75,34 @@ public class InterfaceServiceImpl implements InterfaceService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        interfaceRepo.deleteById(id);
+    public void deleteInterfaceById(Long id) {
+        if (CheckInterfaceId(id)) {
+            interfaceRepo.deleteById(id);
+        } else {
+            throw new DeviceException(Message.NON_EXIST_INTERFACE);
+        }
+    }
+
+    @Override
+    public Interface updateInterface(Interface interfaceUpdate, Long id) {
+        if (CheckInterfaceId(id)) {
+            if (checkValidInterface(interfaceUpdate)) {
+                Interface inf = interfaceRepo.findInterfaceById(id);
+
+                inf.setName(interfaceUpdate.getName());
+                inf.setInfo((interfaceUpdate.getInfo()));
+                inf.setGateway(interfaceUpdate.getGateway());
+                inf.setNetmask(interfaceUpdate.getNetmask());
+                inf.setDhcp(interfaceUpdate.isDhcp());
+                inf.setState(interfaceUpdate.isState());
+                inf.setIpAddress(interfaceUpdate.getIpAddress());
+
+                return interfaceRepo.save(inf);
+            } else {
+                throw new DeviceException(Message.INVALID_DATA);
+            }
+        } else {
+            throw new DeviceException(Message.NON_EXIST_INTERFACE);
+        }
     }
 }

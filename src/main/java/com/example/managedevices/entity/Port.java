@@ -24,7 +24,7 @@ public class Port {
     String portName;
 
     @Column(nullable = false)
-    String state;
+    boolean state;
 
     @Column(columnDefinition = "varchar(20) default 'auto'")
     String speed;

@@ -18,7 +18,7 @@ import java.util.EnumSet;
 import java.util.concurrent.TimeUnit;
 
 public class CommandUtils {
-    public static String execute(Device device, Credential credential,String command) throws IOException, InterruptedException {
+    public static String execute(Device device, Credential credential,String command) {
         String username= credential.getUsername();
         String password=credential.getPassword();
 
@@ -58,6 +58,4 @@ public class CommandUtils {
             throw new DeviceException(Message.ERROR_CONNECTION);
         }
     }
-
-
 }
