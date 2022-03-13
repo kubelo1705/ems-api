@@ -1,10 +1,9 @@
 package com.example.managedevices.service.impl;
 
 import com.example.managedevices.constant.Message;
-import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.NtpServer;
-import com.example.managedevices.exception.DeviceException;
-import com.example.managedevices.repo.NtpServerRepo;
+import com.example.managedevices.exception.EmsException;
+import com.example.managedevices.repository.NtpServerRepository;
 import com.example.managedevices.service.NtpServerService;
 import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +14,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class NtpServerServiceImpl implements NtpServerService {
-    private final NtpServerRepo ntpServerRepo;
+    private final NtpServerRepository ntpServerRepo;
 
     @Override
     public List<NtpServer> getAllNtpservers() {
@@ -27,7 +26,7 @@ public class NtpServerServiceImpl implements NtpServerService {
         if(EntityValidator.isValidIp(ntpServer.getServerAddress()))
             return ntpServerRepo.save(ntpServer);
         else
-            throw new DeviceException(Message.INVALID_IP);
+            throw new EmsException(Message.INVALID_IP);
     }
 
     @Override
@@ -39,10 +38,10 @@ public class NtpServerServiceImpl implements NtpServerService {
                 ntpServerUpdate.setState(ntpServer.isState());
                 return ntpServerRepo.save(ntpServerUpdate);
             }else{
-                throw new DeviceException(Message.INVALID_IP);
+                throw new EmsException(Message.INVALID_IP);
             }
         }else{
-            throw new DeviceException(Message.NON_EXIST_NTPSERVER);
+            throw new EmsException(Message.NON_EXIST_NTPSERVER);
         }
     }
 
@@ -52,7 +51,7 @@ public class NtpServerServiceImpl implements NtpServerService {
         if(ntpServer!=null){
             ntpServerRepo.delete(ntpServer);
         }else{
-            throw new DeviceException(Message.NON_EXIST_NTPSERVER);
+            throw new EmsException(Message.NON_EXIST_NTPSERVER);
         }
     }
 

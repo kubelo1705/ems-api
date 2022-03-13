@@ -1,18 +1,27 @@
 package com.example.managedevices.controller;
 
+import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.service.DeviceService;
+import com.example.managedevices.utils.CommandUtils;
+import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("device")
+@RequestMapping("api/v1/so/devices")
 public class DeviceController {
     DeviceService deviceService;
 
@@ -25,7 +34,7 @@ public class DeviceController {
         return ResponseEntity.ok(deviceService.getAllDevices());
     }
 
-    @PostMapping("add")
+    @PostMapping("")
     public ResponseEntity<?> addDevice(@Valid @RequestBody Device device) {
         try{
             return ResponseEntity.ok(deviceService.addDevice(device));
@@ -86,6 +95,24 @@ public class DeviceController {
         }
         else {
             return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
+        }
+    }
+    @GetMapping("download/{id}")
+    public ResponseEntity downloadFile(@PathVariable Optional<Long> id) {
+        Device device=deviceService.getDeviceById(id.get());
+        if(device!=null){
+            try {
+                CommandUtils.execute(device, device.getCredential(), Command.CONFIGURATION_EXPORT);
+                File file = ResourceUtils.getFile(Command.FILE_PATH);
+                byte[] data = FileUtils.readFileToByteArray(file);
+                InputStream inputStream = new BufferedInputStream(new ByteArrayInputStream(data));
+                InputStreamResource inputStreamResource = new InputStreamResource(inputStream);
+                return ResponseEntity.ok(inputStreamResource);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }else{
+            return ResponseEntity.badRequest().body(Message.NON_EXIST_DEVICE);
         }
     }
 }

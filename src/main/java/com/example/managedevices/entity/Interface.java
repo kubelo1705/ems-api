@@ -1,7 +1,7 @@
 package com.example.managedevices.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -42,5 +42,7 @@ public class Interface {
     @JoinColumn(name = "device_id",nullable = false)
     @NotBlank
     @JsonIgnore
+    @ToString.Exclude
     Device device;
+
 }

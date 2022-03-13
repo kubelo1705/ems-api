@@ -3,14 +3,14 @@ package com.example.managedevices.service.impl;
 import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
-import com.example.managedevices.exception.DeviceException;
-import com.example.managedevices.mapper.DeviceMapper;
-import com.example.managedevices.repo.DeviceRepo;
-import com.example.managedevices.repo.InterfaceRepo;
-import com.example.managedevices.repo.PortRepo;
+import com.example.managedevices.exception.EmsException;
+import com.example.managedevices.parser.OutputParser;
+import com.example.managedevices.repository.DeviceRepository;
+import com.example.managedevices.repository.InterfaceRepository;
+import com.example.managedevices.repository.PortRepository;
 import com.example.managedevices.service.DeviceService;
 import com.example.managedevices.utils.CommandUtils;
-import com.example.managedevices.utils.FormatUtils;
+import com.example.managedevices.utils.OutputUtils;
 import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -22,9 +22,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DeviceServiceImpl implements DeviceService {
-    private final DeviceRepo deviceRepo;
-    private final InterfaceRepo interfaceRepo;
-    private final PortRepo portRepo;
+    private final DeviceRepository deviceRepo;
+    private final InterfaceRepository interfaceRepo;
+    private final PortRepository portRepo;
 
     private static final Logger log= LogManager.getLogger(DeviceServiceImpl.class);
 
@@ -38,7 +38,7 @@ public class DeviceServiceImpl implements DeviceService {
         if(checkValidIpv4(device))
             return deviceRepo.save(device);
         else
-            throw new DeviceException(Message.INVALID_IP);
+            throw new EmsException(Message.INVALID_IP);
     }
 
     @Override
@@ -52,7 +52,7 @@ public class DeviceServiceImpl implements DeviceService {
         if (device != null) {
             return device;
         } else {
-            throw new DeviceException(Message.NON_EXIST_DEVICE);
+            throw new EmsException(Message.NON_EXIST_DEVICE);
         }
     }
 
@@ -60,7 +60,7 @@ public class DeviceServiceImpl implements DeviceService {
     public List<Device> getDevicesByType(String type) {
         List<Device> devices = deviceRepo.findDeviceByType(type);
         if (devices.isEmpty()) {
-            throw new DeviceException(Message.NON_EXIST_DEVICE);
+            throw new EmsException(Message.NON_EXIST_DEVICE);
         }
         return devices;
     }
@@ -69,7 +69,7 @@ public class DeviceServiceImpl implements DeviceService {
     public List<Device> getDeviceByIpaddress(String ipAddress) {
         List<Device> devices = deviceRepo.findDevicesByIpAddressContains(ipAddress);
         if (devices.isEmpty()) {
-            throw new DeviceException(Message.NON_EXIST_DEVICE);
+            throw new EmsException(Message.NON_EXIST_DEVICE);
         }
         return devices;
     }
@@ -79,7 +79,7 @@ public class DeviceServiceImpl implements DeviceService {
         if (isValidId(id)) {
             deviceRepo.deleteDeviceById(id);
         } else {
-            throw new DeviceException(Message.NON_EXIST_DEVICE);
+            throw new EmsException(Message.NON_EXIST_DEVICE);
         }
     }
 
@@ -95,12 +95,12 @@ public class DeviceServiceImpl implements DeviceService {
             if (!deviceConfigure.isBlank()) {
 
                 device.setStatus(true);
-                DeviceMapper.mapConfigurationToDevice(FormatUtils.toMapDeviceConfiguration(deviceConfigure), device);
+                OutputParser.mapConfigurationToDevice(OutputUtils.toMapDeviceConfiguration(deviceConfigure), device);
                 log.debug("MAP CONFIGURATIONS TO DEVICE:"+device.getIpAddress());
 
                 String interfaceConfigurations = CommandUtils.execute(device, device.getCredential(), Command.INTERFACE_CONFIGURE);
                 if (!interfaceConfigurations.isBlank()) {
-                    DeviceMapper.mapInterfacesToDevice(interfaceConfigurations, device);
+                    OutputParser.mapInterfacesToDevice(interfaceConfigurations, device);
                     log.debug("MAP INTERFACES TO DEVICE:"+device.getIpAddress());
                 }else {
                     log.debug("EMPTY INTERFACES");
@@ -108,7 +108,7 @@ public class DeviceServiceImpl implements DeviceService {
 
                 String portConfigurations = CommandUtils.execute(device, device.getCredential(), Command.PORT_CONFIGURE);
                 if (!portConfigurations.isBlank()) {
-                    DeviceMapper.mapPortsToDevice(portConfigurations, device);
+                    OutputParser.mapPortsToDevice(portConfigurations, device);
                     log.debug("MAP PORTS TO DEVICE:"+device.getIpAddress());
                 }else {
                     log.debug("EMPTY PORTS");

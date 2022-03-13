@@ -3,16 +3,18 @@ package com.example.managedevices.controller;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Credential;
 import com.example.managedevices.service.CredentialService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Optional;
 
-@Repository
-@RequestMapping("credential")
+@Controller
+@RequestMapping("api/v1/so/credentials")
 public class CredentialController {
+    @Autowired
     CredentialService credentialService;
 
     @GetMapping("")
@@ -20,7 +22,7 @@ public class CredentialController {
         return ResponseEntity.ok(credentialService.getAllCredentials());
     }
 
-    @PostMapping("add")
+    @PostMapping("")
     public ResponseEntity<?> addCredential(@Valid @RequestBody Credential credential){
         try{
             return ResponseEntity.ok(credentialService.addCredential(credential));

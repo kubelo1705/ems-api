@@ -8,6 +8,7 @@ import javax.validation.constraints.NotBlank;
 
 @Entity
 @Data
+@Table(name = "ntpserver")
 public class NtpServer {
     @Id
     @Column(name = "id", nullable = false)

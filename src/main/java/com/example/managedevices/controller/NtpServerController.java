@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
-@RequestMapping("ntp")
+@RequestMapping("api/v1/so/ntpservers")
 public class NtpServerController {
     NtpServerService ntpServerService;
 
@@ -26,7 +26,7 @@ public class NtpServerController {
         }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("{id}")
     public ResponseEntity updateNtpserver(NtpServer ntpServer, @PathVariable Long id){
         try{
             return ResponseEntity.ok(ntpServerService.updateNtpserver(ntpServer,id));
@@ -35,7 +35,7 @@ public class NtpServerController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("{id}")
     public ResponseEntity deleteNtpserver(@PathVariable Long id){
         try{
             ntpServerService.deleteNtpserver(id);

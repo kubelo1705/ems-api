@@ -1,14 +1,14 @@
-package com.example.managedevices.mapper;
+package com.example.managedevices.parser;
 
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.entity.Port;
-import com.example.managedevices.utils.FormatUtils;
+import com.example.managedevices.utils.OutputUtils;
 
 import java.util.Map;
 import java.util.Objects;
 
-public class DeviceMapper {
+public class OutputParser {
     public static void mapConfigurationToDevice(Map<String,String> configuration, Device device){
         device.setName(configuration.get("Product name"));
         device.setFirmwareVersion(configuration.get("Firmware version"));
@@ -41,19 +41,19 @@ public class DeviceMapper {
     }
 
     public static void mapInterfacesToDevice(String interfaces,Device device){
-        String[] configurations=FormatUtils.toArrayConfigurations(interfaces);
+        String[] configurations= OutputUtils.toArrayConfigurations(interfaces);
         for (String configuration : configurations) {
             Interface inf=new Interface();
-            String[] properties=FormatUtils.toArrayProperties(configuration);
+            String[] properties= OutputUtils.toArrayProperties(configuration);
             mapConfigurationToInterface(properties,inf);
             device.getInterfaces().add(inf);
         }
     }
     public static void mapPortsToDevice(String ports,Device device){
-        String[] configurations=FormatUtils.toArrayConfigurations(ports);
+        String[] configurations= OutputUtils.toArrayConfigurations(ports);
         for (String configuration : configurations) {
             Port port=new Port();
-            String[] properties=FormatUtils.toArrayProperties(configuration);
+            String[] properties= OutputUtils.toArrayProperties(configuration);
             mapConfigurationToPort(properties,port);
             device.getPorts().add(port);
         }

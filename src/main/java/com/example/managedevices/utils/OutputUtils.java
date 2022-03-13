@@ -3,7 +3,7 @@ package com.example.managedevices.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FormatUtils {
+public class OutputUtils {
     public static String formatOutput(String output,String command){
         return output.substring(output.lastIndexOf(command) + command.length(),output.lastIndexOf("\n")).trim();
     }

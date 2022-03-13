@@ -2,7 +2,7 @@ package com.example.managedevices.controller;
 
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Interface;
-import com.example.managedevices.exception.DeviceException;
+import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.service.InterfaceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,16 +12,16 @@ import javax.validation.Valid;
 import java.util.Optional;
 
 @Controller
-@RequestMapping("interface")
+@RequestMapping("api/v1/so/interfaces")
 public class InterfaceController {
     InterfaceService interfaceService;
 
-    @PostMapping("add")
+    @PostMapping("")
     public ResponseEntity<?> addInterface(@Valid @RequestBody Interface interfaceAdd) {
         try{
             return ResponseEntity.ok(interfaceService.addInterface(interfaceAdd));
         }catch (Exception e){
-            throw new DeviceException(e.getMessage());
+            throw new EmsException(e.getMessage());
         }
     }
 
@@ -38,7 +38,7 @@ public class InterfaceController {
         }
     }
 
-    @DeleteMapping
+    @DeleteMapping("{id}")
     public ResponseEntity<?> deleteInterface(@PathVariable Optional<Long> id) {
         if (id.isPresent()) {
             try{

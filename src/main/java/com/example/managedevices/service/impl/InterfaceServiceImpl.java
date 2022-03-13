@@ -2,9 +2,9 @@ package com.example.managedevices.service.impl;
 
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Interface;
-import com.example.managedevices.exception.DeviceException;
-import com.example.managedevices.repo.DeviceRepo;
-import com.example.managedevices.repo.InterfaceRepo;
+import com.example.managedevices.exception.EmsException;
+import com.example.managedevices.repository.DeviceRepository;
+import com.example.managedevices.repository.InterfaceRepository;
 import com.example.managedevices.service.InterfaceService;
 import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +15,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class InterfaceServiceImpl implements InterfaceService {
-    private final InterfaceRepo interfaceRepo;
-    private final DeviceRepo deviceRepo;
+    private final InterfaceRepository interfaceRepo;
+    private final DeviceRepository deviceRepo;
 
     @Override
     public List<Interface> getAllInterfaces() {
@@ -34,10 +34,10 @@ public class InterfaceServiceImpl implements InterfaceService {
             if (checkValidInterface(interfaceAdd)) {
                 return interfaceRepo.save(interfaceAdd);
             } else {
-                throw new DeviceException(Message.INVALID_DATA);
+                throw new EmsException(Message.INVALID_DATA);
             }
         }
-        throw new DeviceException(Message.DUPLICATE_ID);
+        throw new EmsException(Message.DUPLICATE_ID);
     }
 
     @Override
@@ -67,11 +67,11 @@ public class InterfaceServiceImpl implements InterfaceService {
                 if (checkIpAddress(interfaceCheck)) {
                     return true;
                 }
-                throw new DeviceException(Message.INVALID_DEVICE);
+                throw new EmsException(Message.INVALID_DEVICE);
             }
-            throw new DeviceException(Message.INVALID_IP);
+            throw new EmsException(Message.INVALID_IP);
         }
-        throw new DeviceException(Message.INVALID_DEVICE);
+        throw new EmsException(Message.INVALID_DEVICE);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class InterfaceServiceImpl implements InterfaceService {
         if (CheckInterfaceId(id)) {
             interfaceRepo.deleteById(id);
         } else {
-            throw new DeviceException(Message.NON_EXIST_INTERFACE);
+            throw new EmsException(Message.NON_EXIST_INTERFACE);
         }
     }
 
@@ -99,10 +99,10 @@ public class InterfaceServiceImpl implements InterfaceService {
 
                 return interfaceRepo.save(inf);
             } else {
-                throw new DeviceException(Message.INVALID_DATA);
+                throw new EmsException(Message.INVALID_DATA);
             }
         } else {
-            throw new DeviceException(Message.NON_EXIST_INTERFACE);
+            throw new EmsException(Message.NON_EXIST_INTERFACE);
         }
     }
 }

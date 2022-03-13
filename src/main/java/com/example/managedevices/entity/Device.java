@@ -1,5 +1,6 @@
 package com.example.managedevices.entity;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,8 +11,7 @@ import javax.validation.constraints.Size;
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Table(name = "device")
 public class Device {
     @Id
