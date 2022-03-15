@@ -6,6 +6,7 @@ import com.example.managedevices.entity.Device;
 import com.example.managedevices.service.DeviceService;
 import com.example.managedevices.utils.CommandUtils;
 import org.apache.commons.io.FileUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,9 +21,10 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("api/v1/so/devices")
 public class DeviceController {
+    @Autowired
     DeviceService deviceService;
 
     @GetMapping("")
@@ -114,5 +116,11 @@ public class DeviceController {
         }else{
             return ResponseEntity.badRequest().body(Message.NON_EXIST_DEVICE);
         }
+    }
+
+    @GetMapping("load/{id}")
+    public ResponseEntity reloadDevice(@PathVariable Optional<Long> id){
+        Device device=deviceService.resync(deviceService.getDeviceById(id.get()));
+        return ResponseEntity.ok(device);
     }
 }

@@ -4,6 +4,7 @@ import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.service.InterfaceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -11,9 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Optional;
 
-@Controller
+@RestController
 @RequestMapping("api/v1/so/interfaces")
 public class InterfaceController {
+    @Autowired
     InterfaceService interfaceService;
 
     @PostMapping("")

@@ -2,12 +2,14 @@ package com.example.managedevices.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 
 @Data
 @Entity
-@Table(name = "port")
+@Table(name = "ports")
 public class Port {
     @Id
     @Column(name = "id", nullable = false)
@@ -35,12 +37,13 @@ public class Port {
     @Column(columnDefinition = "varchar(20) default 'auto'")
     String mdi;
 
-    @Column(name = "mac_address",unique = true,nullable = false,length = 17)
+    @Column(name = "mac_address",nullable = false,length = 17)
     String macAddress;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id",nullable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
     @JsonIgnore
     Device device;
 }

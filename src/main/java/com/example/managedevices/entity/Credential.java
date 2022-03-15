@@ -11,7 +11,7 @@ import java.util.Set;
 
 @Data
 @Entity
-@Table
+@Table(name = "credentials")
 public class Credential {
     @Id
     @Column(name = "id", nullable = false)

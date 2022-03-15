@@ -2,28 +2,48 @@ package com.example.managedevices.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+import java.util.Set;
+
 
 @Entity
 @Data
-@Table(name = "ntpserver")
+@Table(name = "ntpservers")
 public class NtpServer {
     @Id
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "server_address",nullable = false)
-    @NotBlank
-    String serverAddress;
+    @Column
+    boolean client;
 
-    @Column(columnDefinition = "boolean default false")
-    boolean state;
+    @Column
+    int offset;
+
+    @Column
+    int dscp;
+
+    @Column
+    int vlanPriority;
+
+    @Column
+    String syncStatus;
+
+    @Column
+    String timeIntervals;
+
+    @Column
+    int numberOfMessages;
+
+    @OneToMany(mappedBy = "ntpServer",fetch = FetchType.EAGER)
+    Set<NtpAddesss> ntpAddessses;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id",nullable = false)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
     @JsonIgnore
-    @NotBlank
     Device device;
 }

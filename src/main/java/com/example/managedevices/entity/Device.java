@@ -1,18 +1,18 @@
 package com.example.managedevices.entity;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
 @Data
-@Table(name = "device")
+@Table(name = "devices")
 public class Device {
     @Id
     @Column(name = "id",nullable = false)
@@ -20,8 +20,6 @@ public class Device {
     Long id;
 
     @Column(name = "ip_address",unique = true,length = 15,nullable = false)
-    @NotBlank(message = "Empty ip address")
-    @Size(max = 15)
     String ipAddress;
 
     @Column
@@ -42,17 +40,17 @@ public class Device {
     @Column(columnDefinition = "boolean default false")
     boolean status=false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
+    @EqualsAndHashCode.Exclude @ToString.Exclude
     @JoinColumn(name = "credential_id",nullable = false)
-    @NotNull(message = "Empty credential")
     Credential credential;
 
-    @OneToMany(mappedBy = "device",fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "device",fetch = FetchType.EAGER)
     Set<Interface> interfaces;
 
-    @OneToMany (mappedBy = "device",fetch = FetchType.LAZY)
+    @OneToMany (mappedBy = "device",fetch = FetchType.EAGER)
     Set<Port> ports;
 
-    @OneToMany(mappedBy = "device",fetch = FetchType.LAZY)
-    Set<NtpServer> ntpServers;
+    @OneToMany(mappedBy = "device",fetch = FetchType.EAGER)
+    Set<NtpServer> ntpServer;
 }

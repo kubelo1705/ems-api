@@ -14,7 +14,7 @@ public interface DeviceService {
     List<Device> getDeviceByIpaddress(String ipAddress);
     void deleteDeviceById(Long id);
     boolean isValidId(Long id);
-    void resync(Device device);
+    Device resync(Device device);
     @Scheduled(fixedDelay = 15000) void autoResync();
 
 }

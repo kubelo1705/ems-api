@@ -5,22 +5,22 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Data
 @Entity
-@Table(name = "interface")
+@Table(name = "interfaces")
 public class Interface {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false,unique = true)
-    @NotBlank
+    @Column(nullable = false)
     String name;
 
-    @Column(name = "ip_address",unique = true,nullable = false,length = 15)
-    @NotBlank
+    @Column(name = "ip_address",nullable = false)
     String ipAddress;
 
     @Column(columnDefinition = "boolean default true")
@@ -40,9 +40,8 @@ public class Interface {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id",nullable = false)
-    @NotBlank
     @JsonIgnore
-    @ToString.Exclude
+    @EqualsAndHashCode.Exclude @ToString.Exclude
     Device device;
 
 }

@@ -50,7 +50,7 @@ public class CommandUtils {
                 } finally {
                     channel.close(false);
                     client.stop();
-                    return OutputUtils.formatOutput(new String(responseStream.toByteArray()),command);
+                    return new String(responseStream.toByteArray());
                 }
             }
         }catch (Exception e){

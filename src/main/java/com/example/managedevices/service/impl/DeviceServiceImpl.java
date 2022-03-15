@@ -3,10 +3,13 @@ package com.example.managedevices.service.impl;
 import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
+import com.example.managedevices.entity.Interface;
+import com.example.managedevices.entity.Port;
 import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.parser.OutputParser;
 import com.example.managedevices.repository.DeviceRepository;
 import com.example.managedevices.repository.InterfaceRepository;
+import com.example.managedevices.repository.NtpServerRepository;
 import com.example.managedevices.repository.PortRepository;
 import com.example.managedevices.service.DeviceService;
 import com.example.managedevices.utils.CommandUtils;
@@ -17,7 +20,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import static com.example.managedevices.parser.OutputParser.mapConfigurationToInterface;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +33,7 @@ public class DeviceServiceImpl implements DeviceService {
     private final DeviceRepository deviceRepo;
     private final InterfaceRepository interfaceRepo;
     private final PortRepository portRepo;
-
+    private final NtpServerRepository ntpRepo;
     private static final Logger log= LogManager.getLogger(DeviceServiceImpl.class);
 
     @Override
@@ -89,18 +97,28 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     @Override
-    public void resync(Device device) {
+    public Device resync(Device device) {
+        interfaceRepo.deleteAll();
+        portRepo.deleteAll();
+        ntpRepo.deleteAll();
         try {
             String deviceConfigure = CommandUtils.execute(device, device.getCredential(), Command.DEVICE_CONFIGURE);
             if (!deviceConfigure.isBlank()) {
-
                 device.setStatus(true);
                 OutputParser.mapConfigurationToDevice(OutputUtils.toMapDeviceConfiguration(deviceConfigure), device);
                 log.debug("MAP CONFIGURATIONS TO DEVICE:"+device.getIpAddress());
 
                 String interfaceConfigurations = CommandUtils.execute(device, device.getCredential(), Command.INTERFACE_CONFIGURE);
                 if (!interfaceConfigurations.isBlank()) {
-                    OutputParser.mapInterfacesToDevice(interfaceConfigurations, device);
+
+                    Set<Interface> infs=new HashSet<>();
+                    infs.addAll(OutputParser.mapConfigurationToInterfaces(interfaceConfigurations));
+                    infs.forEach(inf->{
+                        inf.setDevice(device);
+                        System.out.println(inf.getName());
+                        interfaceRepo.save(inf);
+                    });
+//                    device.setInterfaces(interfaces);
                     log.debug("MAP INTERFACES TO DEVICE:"+device.getIpAddress());
                 }else {
                     log.debug("EMPTY INTERFACES");
@@ -108,19 +126,32 @@ public class DeviceServiceImpl implements DeviceService {
 
                 String portConfigurations = CommandUtils.execute(device, device.getCredential(), Command.PORT_CONFIGURE);
                 if (!portConfigurations.isBlank()) {
-                    OutputParser.mapPortsToDevice(portConfigurations, device);
+                    Set<Port> ports=new HashSet<>();
+                    ports.addAll(OutputParser.mapConfigurationToPorts(portConfigurations));
+                    ports.forEach(port->{
+                        port.setDevice(device);
+                        System.out.println(port.getPortName());
+                        portRepo.save(port);
+                    });
                     log.debug("MAP PORTS TO DEVICE:"+device.getIpAddress());
                 }else {
                     log.debug("EMPTY PORTS");
                 }
 
-                deviceRepo.save(device);
+                String ntpConfiguration=CommandUtils.execute(device,device.getCredential(),Command.NTP_CONFIGURE);
+                if(!ntpConfiguration.isBlank()){
+
+                }
+
+                return deviceRepo.save(device);
             }
         } catch (Exception e) {
             device.setStatus(false);
             deviceRepo.save(device);
+            log.error(e.getMessage());
             log.error("CAN'T CREATE CONNECTION TO DEVICE:"+device.getIpAddress());
         }
+        return device;
     }
 
     @Override

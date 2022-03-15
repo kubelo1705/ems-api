@@ -3,13 +3,15 @@ package com.example.managedevices.controller;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.NtpServer;
 import com.example.managedevices.service.NtpServerService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
 @RequestMapping("api/v1/so/ntpservers")
 public class NtpServerController {
+    @Autowired
     NtpServerService ntpServerService;
 
     @GetMapping()
