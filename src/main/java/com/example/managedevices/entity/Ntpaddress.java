@@ -10,9 +10,10 @@ import javax.persistence.*;
 @Data
 @Entity
 @Table(name = "ntp_address")
-public class NtpAddesss {
+public class Ntpaddress {
     @Id
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column
@@ -22,9 +23,18 @@ public class NtpAddesss {
     boolean status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ntp_id",nullable = false)
+    @JoinColumn(name = "ntpserver_id",nullable = false)
     @EqualsAndHashCode.Exclude @ToString.Exclude
     @JsonIgnore
-    NtpServer ntpServer;
+    Ntpserver ntpserver;
 
+    public Ntpaddress(String address, boolean status, Ntpserver ntpservers) {
+        this.address = address;
+        this.status = status;
+        this.ntpserver = ntpservers;
+    }
+
+    public Ntpaddress() {
+
+    }
 }

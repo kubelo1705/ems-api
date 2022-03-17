@@ -16,5 +16,6 @@ public interface DeviceService {
     boolean isValidId(Long id);
     Device resync(Device device);
     @Scheduled(fixedDelay = 15000) void autoResync();
+    String executeCommandByIdDevice(Long idDevice, String command);
 
 }

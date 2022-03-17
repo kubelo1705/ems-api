@@ -1,17 +1,13 @@
 package com.example.managedevices.utils;
 
-import java.util.Arrays;
+import com.example.managedevices.constant.NtpAttribute;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class OutputUtils {
     public static String formatOutput(String output){
-        for (int i = 0; i < 6; i++) {
-            output = output.substring(output.indexOf('\n')+1);
-        }
-
-        return output.substring(0,output.lastIndexOf("\n")).trim();
+        return output.substring(output.indexOf("\r\n\r\n",output.indexOf("\r\n\r\n")+1),output.lastIndexOf("\n")).trim();
     }
 
     public static Map<String,String>  toMapDeviceConfiguration(String configuration){
@@ -35,10 +31,34 @@ public class OutputUtils {
     }
 
     public static Map<String,String>  toMapNtpConfiguration(String configuration){
-        configuration= configuration.replaceAll("(?m)^[ \t]*\r?\n", "").substring(0,configuration.lastIndexOf(")"));
+
+        configuration=OutputUtils.formatOutput(configuration).replaceAll("(?m)^[ \t]*\r?\n", "");
+        String formatedConfiguration = configuration.substring(0, configuration.lastIndexOf(NtpAttribute.END));
+        String[] enabledAddress= formatedConfiguration.substring(formatedConfiguration.indexOf(NtpAttribute.ENABLED_ADDRESS),formatedConfiguration.indexOf(NtpAttribute.DISABLED_ADDRESS)).split(":");
+        String[] disabledAddress=formatedConfiguration.substring(formatedConfiguration.indexOf(NtpAttribute.DISABLED_ADDRESS)).split(":");
 
         Map<String,String> map=new HashMap<>();
 
+        String[] attributes=formatedConfiguration.substring(0,formatedConfiguration.indexOf(NtpAttribute.ENABLED_ADDRESS)).split("\n");
+        for (String attribute : attributes) {
+            String[] keyValue=attribute.split(":");
+            map.put(keyValue[0].trim(),keyValue[1].trim());
+        }
+
+        map.put(enabledAddress[0],addressesToStringAddress(enabledAddress[1]));
+        map.put(disabledAddress[0],addressesToStringAddress(disabledAddress[1]));
+
         return map;
+    }
+
+    public static String addressesToStringAddress(String addresses){
+        String result="";
+        for (String s : addresses.split("\n")) {
+            if(s.indexOf("(")!=-1){
+                s=s.substring(0,s.indexOf("("));
+            }
+            result=result.trim()+" "+s.trim();
+        }
+        return result.trim();
     }
 }

@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -27,6 +28,19 @@ public class DeviceController {
     @Autowired
     DeviceService deviceService;
 
+    @PostMapping("command/{id}")
+    public ResponseEntity executeCommand(@PathVariable Optional<Long> id,@RequestBody Map<String,Object> command){
+        if(id.isPresent()){
+            try{
+                return ResponseEntity.ok(deviceService.executeCommandByIdDevice(id.get(),command.get("command").toString()));
+            }catch(Exception e){
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }else{
+            return ResponseEntity.badRequest().body(Message.INVALID_DATA);
+        }
+
+    }
     @GetMapping("")
     public ResponseEntity<?> getAllDevices() {
         List<Device> devices = deviceService.getAllDevices();

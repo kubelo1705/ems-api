@@ -1,13 +1,19 @@
 package com.example.managedevices.service.impl;
 
+import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
+import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.repository.DeviceRepository;
 import com.example.managedevices.repository.InterfaceRepository;
+import com.example.managedevices.response.EmsResponse;
 import com.example.managedevices.service.InterfaceService;
+import com.example.managedevices.utils.CommandUtils;
+import com.example.managedevices.utils.OutputUtils;
 import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,10 +35,22 @@ public class InterfaceServiceImpl implements InterfaceService {
     }
 
     @Override
-    public Interface addInterface(Interface interfaceAdd) {
-        if (!CheckInterfaceId(interfaceAdd.getId())) {
+    public EmsResponse addInterface(Interface interfaceAdd) {
+        if (interfaceRepo.existsById(interfaceAdd.getId())) {
             if (checkValidInterface(interfaceAdd)) {
-                return interfaceRepo.save(interfaceAdd);
+                Device device=deviceRepo.findDeviceById(interfaceAdd.getDevice().getId());
+                String command = Command.ADD_INTERFACE
+                        .replace("interface_name",interfaceAdd.getName())
+                        .replace("ip_address", interfaceAdd.getIpAddress())
+                        .replace("port_name", interfaceAdd.getPort())
+                        .replace("interface_state", interfaceAdd.isState()?"enable":"disable")
+                        .replace("netmask_address", interfaceAdd.getNetmask());
+
+                String output=OutputUtils.formatOutput(CommandUtils.execute(device,device.getCredential(),command));
+                if (output.isEmpty())
+                    return new EmsResponse(HttpStatus.OK,Message.SUCCESSFUL,interfaceRepo.save(interfaceAdd));
+                else
+                    return new EmsResponse(HttpStatus.BAD_REQUEST,Message.UNSUCCESSFUL,output);
             } else {
                 throw new EmsException(Message.INVALID_DATA);
             }
@@ -52,12 +70,14 @@ public class InterfaceServiceImpl implements InterfaceService {
 
     @Override
     public boolean checkDevice(Interface interfaceCheck) {
-        return deviceRepo.findById(interfaceCheck.getId()) != null ? true : false;
-    }
-
-    @Override
-    public boolean CheckInterfaceId(Long id) {
-        return interfaceRepo.findInterfaceById(id) != null ? true : false;
+        try {
+            if(interfaceCheck.getDevice()!=null)
+                return deviceRepo.existsById(interfaceCheck.getDevice().getId());
+            else
+                return false;
+        }catch (Exception e){
+            return false;
+        }
     }
 
     @Override
@@ -67,16 +87,17 @@ public class InterfaceServiceImpl implements InterfaceService {
                 if (checkIpAddress(interfaceCheck)) {
                     return true;
                 }
-                throw new EmsException(Message.INVALID_DEVICE);
+                throw new EmsException(Message.INVALID_NETMASK);
             }
             throw new EmsException(Message.INVALID_IP);
         }
-        throw new EmsException(Message.INVALID_DEVICE);
+        throw new EmsException(Message.NON_EXIST_DEVICE);
     }
 
     @Override
-    public void deleteInterfaceById(Long id) {
-        if (CheckInterfaceId(id)) {
+    public void deleteInterface(Long id) {
+        if (interfaceRepo.existsById(id)) {
+
             interfaceRepo.deleteById(id);
         } else {
             throw new EmsException(Message.NON_EXIST_INTERFACE);
@@ -85,7 +106,7 @@ public class InterfaceServiceImpl implements InterfaceService {
 
     @Override
     public Interface updateInterface(Interface interfaceUpdate, Long id) {
-        if (CheckInterfaceId(id)) {
+        if (interfaceRepo.existsById(id)) {
             if (checkValidInterface(interfaceUpdate)) {
                 Interface inf = interfaceRepo.findInterfaceById(id);
 

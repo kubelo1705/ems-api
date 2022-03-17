@@ -4,13 +4,11 @@ import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Interface;
+import com.example.managedevices.entity.Ntpserver;
 import com.example.managedevices.entity.Port;
 import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.parser.OutputParser;
-import com.example.managedevices.repository.DeviceRepository;
-import com.example.managedevices.repository.InterfaceRepository;
-import com.example.managedevices.repository.NtpServerRepository;
-import com.example.managedevices.repository.PortRepository;
+import com.example.managedevices.repository.*;
 import com.example.managedevices.service.DeviceService;
 import com.example.managedevices.utils.CommandUtils;
 import com.example.managedevices.utils.OutputUtils;
@@ -18,7 +16,9 @@ import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,12 +29,14 @@ import static com.example.managedevices.parser.OutputParser.mapConfigurationToIn
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DeviceServiceImpl implements DeviceService {
     private final DeviceRepository deviceRepo;
     private final InterfaceRepository interfaceRepo;
     private final PortRepository portRepo;
     private final NtpServerRepository ntpRepo;
-    private static final Logger log= LogManager.getLogger(DeviceServiceImpl.class);
+    private final NtpAddressRepository ntpAddressRepo;
+    private static final Logger log = LogManager.getLogger(DeviceServiceImpl.class);
 
     @Override
     public List<Device> getAllDevices() {
@@ -43,7 +45,7 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Device addDevice(Device device) {
-        if(checkValidIpv4(device))
+        if (checkValidIpv4(device))
             return deviceRepo.save(device);
         else
             throw new EmsException(Message.INVALID_IP);
@@ -98,49 +100,60 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Device resync(Device device) {
-        interfaceRepo.deleteAll();
-        portRepo.deleteAll();
-        ntpRepo.deleteAll();
+        interfaceRepo.deleteAllByDevice_Id(device.getId());
+        portRepo.deleteAllByDevice_Id(device.getId());
+        ntpRepo.deleteAllByDevice_Id(device.getId());
+        System.out.println(1);
+        System.out.println(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
+        System.out.println(1);
+        ntpAddressRepo.deleteAllByNtpserver_Id(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
         try {
             String deviceConfigure = CommandUtils.execute(device, device.getCredential(), Command.DEVICE_CONFIGURE);
             if (!deviceConfigure.isBlank()) {
                 device.setStatus(true);
                 OutputParser.mapConfigurationToDevice(OutputUtils.toMapDeviceConfiguration(deviceConfigure), device);
-                log.debug("MAP CONFIGURATIONS TO DEVICE:"+device.getIpAddress());
+                log.debug("MAP CONFIGURATIONS TO DEVICE:" + device.getIpAddress());
 
                 String interfaceConfigurations = CommandUtils.execute(device, device.getCredential(), Command.INTERFACE_CONFIGURE);
                 if (!interfaceConfigurations.isBlank()) {
 
-                    Set<Interface> infs=new HashSet<>();
+                    Set<Interface> infs = new HashSet<>();
                     infs.addAll(OutputParser.mapConfigurationToInterfaces(interfaceConfigurations));
-                    infs.forEach(inf->{
+                    infs.forEach(inf -> {
                         inf.setDevice(device);
-                        System.out.println(inf.getName());
                         interfaceRepo.save(inf);
                     });
-//                    device.setInterfaces(interfaces);
-                    log.debug("MAP INTERFACES TO DEVICE:"+device.getIpAddress());
-                }else {
+                    device.setInterfaces(infs);
+                    log.debug("MAP INTERFACES TO DEVICE:" + device.getIpAddress());
+                } else {
                     log.debug("EMPTY INTERFACES");
                 }
 
                 String portConfigurations = CommandUtils.execute(device, device.getCredential(), Command.PORT_CONFIGURE);
+
                 if (!portConfigurations.isBlank()) {
-                    Set<Port> ports=new HashSet<>();
+                    Set<Port> ports = new HashSet<>();
                     ports.addAll(OutputParser.mapConfigurationToPorts(portConfigurations));
-                    ports.forEach(port->{
+                    ports.forEach(port -> {
                         port.setDevice(device);
-                        System.out.println(port.getPortName());
                         portRepo.save(port);
                     });
-                    log.debug("MAP PORTS TO DEVICE:"+device.getIpAddress());
-                }else {
+                    device.setPorts(ports);
+                    log.debug("MAP PORTS TO DEVICE:" + device.getIpAddress());
+                } else {
                     log.debug("EMPTY PORTS");
                 }
 
-                String ntpConfiguration=CommandUtils.execute(device,device.getCredential(),Command.NTP_CONFIGURE);
-                if(!ntpConfiguration.isBlank()){
-
+                String ntpConfiguration = CommandUtils.execute(device, device.getCredential(), Command.NTP_CONFIGURE);
+                if (!ntpConfiguration.isBlank()) {
+                    Ntpserver ntpserver = OutputParser.mapConfigurationToNtp(ntpConfiguration);
+                    ntpserver.setDevice(device);
+                    ntpRepo.save(ntpserver);
+                    ntpserver.getNtpaddresses().forEach(ntpaddress -> ntpAddressRepo.save(ntpaddress));
+                    device.setNtpserver(ntpserver);
+                    log.debug("MAP NTPS TO DEVICE:" + device.getIpAddress());
+                } else {
+                    log.debug("EMPTY NTPS");
                 }
 
                 return deviceRepo.save(device);
@@ -149,7 +162,7 @@ public class DeviceServiceImpl implements DeviceService {
             device.setStatus(false);
             deviceRepo.save(device);
             log.error(e.getMessage());
-            log.error("CAN'T CREATE CONNECTION TO DEVICE:"+device.getIpAddress());
+            log.error("CAN'T CREATE CONNECTION TO DEVICE:" + device.getIpAddress());
         }
         return device;
     }
@@ -159,5 +172,16 @@ public class DeviceServiceImpl implements DeviceService {
         deviceRepo.findAll().forEach(device -> {
             resync(device);
         });
+    }
+
+    @Override
+    public String executeCommandByIdDevice(Long idDevice, String command) {
+        Device device = deviceRepo.findDeviceById(idDevice);
+        if (device == null) {
+            throw new EmsException(Message.NON_EXIST_DEVICE);
+        } else {
+            String output = CommandUtils.execute(device, device.getCredential(), command);
+            return OutputUtils.formatOutput(output);
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.example.managedevices.service.impl;
 
-import com.example.managedevices.entity.NtpServer;
+import com.example.managedevices.entity.Ntpserver;
 import com.example.managedevices.entity.Port;
 import com.example.managedevices.repository.PortRepository;
 import com.example.managedevices.service.PortService;
@@ -20,7 +20,7 @@ public class PortServiceImpl implements PortService {
     }
 
     @Override
-    public Port addNtpserver(NtpServer ntpServer) {
+    public Port addNtpserver(Ntpserver ntpServer) {
         return null;
     }
 

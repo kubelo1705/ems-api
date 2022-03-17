@@ -12,9 +12,10 @@ import java.util.Set;
 @Entity
 @Data
 @Table(name = "ntpservers")
-public class NtpServer {
+public class Ntpserver {
     @Id
     @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column
@@ -38,11 +39,11 @@ public class NtpServer {
     @Column
     int numberOfMessages;
 
-    @OneToMany(mappedBy = "ntpServer",fetch = FetchType.EAGER)
-    Set<NtpAddesss> ntpAddessses;
+    @OneToMany(mappedBy = "ntpserver",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
+    Set<Ntpaddress> ntpaddresses;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "device_id",nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "device_id",referencedColumnName = "id")
     @EqualsAndHashCode.Exclude @ToString.Exclude
     @JsonIgnore
     Device device;

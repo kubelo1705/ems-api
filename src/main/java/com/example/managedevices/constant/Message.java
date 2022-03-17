@@ -3,7 +3,6 @@ package com.example.managedevices.constant;
 public class Message {
     public static final String INVALID_IP="IP IS NOT VALID";
     public static final String INVALID_NETMASK="NETMASK IS NOT VALID";
-    public static final String INVALID_DEVICE="NETMASK IS NOT VALID";
     public static final String NON_EXIST_INTERFACE="NON EXIST INTERFACE";
     public static final String DUPLICATE_ID ="DUPLICATE ID";
     public static final String NON_EXIST_CREDENTIAL="NON EXIST CREDENTIAL";
@@ -22,5 +21,8 @@ public class Message {
     public static final String CREATED_CONNECTION="CREATED CONNECTION";
 
     public static final String INVALID_DATA="INVALID DATA";
+
+    public static final String DUPLICATE_NTP="DUPLICATE NTP";
+    public static final String SUCCESSFUL ="SUCCESSFUL";
 
 }

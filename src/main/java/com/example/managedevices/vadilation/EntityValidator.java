@@ -21,7 +21,7 @@ public class EntityValidator {
         try{
             for (String subIp : subIps) {
                 int subIpInt = Integer.parseInt(subIp);
-                if (subIpInt != 0 || subIpInt != 255) {
+                if (subIpInt != 0 && subIpInt != 255) {
                     return false;
                 }
             }

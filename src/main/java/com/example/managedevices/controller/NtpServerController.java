@@ -1,11 +1,10 @@
 package com.example.managedevices.controller;
 
 import com.example.managedevices.constant.Message;
-import com.example.managedevices.entity.NtpServer;
+import com.example.managedevices.entity.Ntpserver;
 import com.example.managedevices.service.NtpServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,7 +19,7 @@ public class NtpServerController {
     }
 
     @PostMapping()
-    public ResponseEntity addNtpserver(NtpServer ntpServer){
+    public ResponseEntity addNtpserver(Ntpserver ntpServer){
         try{
             return ResponseEntity.ok(ntpServerService.addNtpserver(ntpServer));
         }catch (Exception e){
@@ -28,14 +27,14 @@ public class NtpServerController {
         }
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity updateNtpserver(NtpServer ntpServer, @PathVariable Long id){
-        try{
-            return ResponseEntity.ok(ntpServerService.updateNtpserver(ntpServer,id));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @PutMapping("{id}")
+//    public ResponseEntity updateNtpserver(Ntpserver ntpServer, @PathVariable Long id){
+//        try{
+//            return ResponseEntity.ok(ntpServerService.updateNtpserver(ntpServer,id));
+//        }catch (Exception e){
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
 
     @DeleteMapping("{id}")
     public ResponseEntity deleteNtpserver(@PathVariable Long id){

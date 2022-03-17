@@ -38,9 +38,12 @@ public class Interface {
     @Column
     String info;
 
+    @Column
+    String port;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id",nullable = false)
-    @JsonIgnore
+//    @JsonIgnore
     @EqualsAndHashCode.Exclude @ToString.Exclude
     Device device;
 

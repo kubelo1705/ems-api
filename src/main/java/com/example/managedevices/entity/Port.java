@@ -22,7 +22,7 @@ public class Port {
     @Column
     String connector;
 
-    @Column(unique = true,name = "port_name",nullable = false)
+    @Column(name = "port_name",nullable = false)
     String portName;
 
     @Column(nullable = false)

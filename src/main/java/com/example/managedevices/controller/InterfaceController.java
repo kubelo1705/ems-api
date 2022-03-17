@@ -1,15 +1,16 @@
 package com.example.managedevices.controller;
 
+import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.service.InterfaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,9 +22,10 @@ public class InterfaceController {
     @PostMapping("")
     public ResponseEntity<?> addInterface(@Valid @RequestBody Interface interfaceAdd) {
         try{
-            return ResponseEntity.ok(interfaceService.addInterface(interfaceAdd));
+            interfaceService.addInterface(interfaceAdd);
+            return ResponseEntity.ok(Message.SUCCESSFUL);
         }catch (Exception e){
-            throw new EmsException(e.getMessage());
+            return ResponseEntity.badRequest().body(Message.UNSUCCESSFUL);
         }
     }
 
@@ -40,17 +42,17 @@ public class InterfaceController {
         }
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteInterface(@PathVariable Optional<Long> id) {
-        if (id.isPresent()) {
-            try{
-                interfaceService.deleteInterfaceById(id.get());
-                return ResponseEntity.ok(Message.DELETE_SUCCESSFUL);
-            }catch(Exception e){
-                return ResponseEntity.badRequest().body(Message.NON_EXIST_INTERFACE);
+    @DeleteMapping()
+    public ResponseEntity<?> deleteInterface(@RequestBody Map<String,Object> map) {
+        if(!map.isEmpty()) {
+            if (map.get("name") != null && map.get("")) {
+
+            }else{
+
             }
         }else{
-            return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
+            return ResponseEntity.
         }
+
     }
 }

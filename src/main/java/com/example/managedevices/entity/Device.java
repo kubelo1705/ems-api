@@ -3,10 +3,6 @@ package com.example.managedevices.entity;
 import lombok.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -45,12 +41,12 @@ public class Device {
     @JoinColumn(name = "credential_id",nullable = false)
     Credential credential;
 
-    @OneToMany(mappedBy = "device",fetch = FetchType.EAGER)
-    Set<Interface> interfaces;
+    @OneToMany(mappedBy = "device",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
+    Set<Interface> interfaces=new HashSet<>();
 
     @OneToMany (mappedBy = "device",fetch = FetchType.EAGER)
-    Set<Port> ports;
+    Set<Port> ports=new HashSet<>();
 
-    @OneToMany(mappedBy = "device",fetch = FetchType.EAGER)
-    Set<NtpServer> ntpServer;
+    @OneToOne(mappedBy = "device",fetch = FetchType.EAGER)
+    Ntpserver ntpserver;
 }

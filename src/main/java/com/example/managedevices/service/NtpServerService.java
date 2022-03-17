@@ -1,12 +1,12 @@
 package com.example.managedevices.service;
 
-import com.example.managedevices.entity.NtpServer;
+import com.example.managedevices.entity.Ntpserver;
 
 import java.util.List;
 
 public interface NtpServerService {
-    List<NtpServer> getAllNtpservers();
-    NtpServer addNtpserver(NtpServer ntpServer);
-    NtpServer updateNtpserver(NtpServer ntpServer,Long id);
+    List<Ntpserver> getAllNtpservers();
+    Ntpserver addNtpserver(Ntpserver ntpServer);
+    //Ntpserver updateNtpserver(Ntpserver ntpServer, Long id);
     void deleteNtpserver(Long id);
 }

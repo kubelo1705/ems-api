@@ -16,7 +16,7 @@ public class Credential {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    Long id;
 
     @Column(unique = true, nullable = false)
     @NotBlank(message = "Empty name credential")

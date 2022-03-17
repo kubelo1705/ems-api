@@ -1,10 +1,7 @@
 package com.example.managedevices.parser;
 
 import com.example.managedevices.constant.NtpAttribute;
-import com.example.managedevices.entity.Device;
-import com.example.managedevices.entity.Interface;
-import com.example.managedevices.entity.NtpServer;
-import com.example.managedevices.entity.Port;
+import com.example.managedevices.entity.*;
 import com.example.managedevices.utils.OutputUtils;
 
 import java.util.*;
@@ -68,9 +65,9 @@ public class OutputParser {
         return ports;
     }
 
-    public NtpServer mapConfigurationToNtp(String ntpConfiguration){
+    public static Ntpserver mapConfigurationToNtp(String ntpConfiguration){
         Map<String,String> ntpMap=OutputUtils.toMapNtpConfiguration(ntpConfiguration);
-        NtpServer ntp=new NtpServer();
+        Ntpserver ntp=new Ntpserver();
         ntp.setClient(ntpMap.get(NtpAttribute.CLIENT).equals("Enabled"));
         ntp.setDscp(Integer.parseInt(ntpMap.get(NtpAttribute.DSCP)));
         ntp.setNumberOfMessages(Integer.parseInt(ntpMap.get(NtpAttribute.NUMBER_OF_MESSAGES)));
@@ -78,6 +75,19 @@ public class OutputParser {
         ntp.setSyncStatus(ntpMap.get(NtpAttribute.SYNC_STATUS));
         ntp.setTimeIntervals(ntpMap.get(NtpAttribute.TIME_INTERVAL));
         ntp.setVlanPriority(Integer.parseInt(ntpMap.get(NtpAttribute.VLAN)));
+
+        Set<Ntpaddress> enabledAddress=new HashSet<>();
+        Arrays.stream((ntpMap.get(NtpAttribute.ENABLED_ADDRESS)).split(" ")).forEach(address->{
+            enabledAddress.add(new Ntpaddress(address,true,ntp));
+        });
+
+        Set<Ntpaddress> disabledAddress=new HashSet<>();
+        Arrays.stream((ntpMap.get(NtpAttribute.DISABLED_ADDRESS)).split(" ")).forEach(address->{
+            disabledAddress.add(new Ntpaddress(address,false,ntp));
+        });
+
+        enabledAddress.addAll(disabledAddress);
+        ntp.setNtpaddresses(enabledAddress);
 
         return ntp;
     }
