@@ -95,12 +95,22 @@ public class InterfaceServiceImpl implements InterfaceService {
     }
 
     @Override
-    public void deleteInterface(Long id) {
-        if (interfaceRepo.existsById(id)) {
-
-            interfaceRepo.deleteById(id);
-        } else {
-            throw new EmsException(Message.NON_EXIST_INTERFACE);
+    public void deleteInterface(Long idDevice,String interfaceName) {
+        if(deviceRepo.existsById(idDevice)) {
+            if (interfaceRepo.existsByNameAndDevice_Id(interfaceName,idDevice)) {
+                Device device=deviceRepo.findDeviceById(idDevice);
+                String command=Command.DELETE_INTERFACE.replace("interface_name",interfaceName);
+                String output = OutputUtils.formatOutput(CommandUtils.execute(device, device.getCredential(),command));
+                if(!output.isEmpty()){
+                    throw new EmsException(output);
+                }else {
+                    interfaceRepo.deleteByNameAndDevice_Id(interfaceName,idDevice);
+                }
+            } else {
+                throw new EmsException(Message.NON_EXIST_INTERFACE);
+            }
+        }else {
+            throw new EmsException(Message.NON_EXIST_DEVICE);
         }
     }
 

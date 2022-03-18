@@ -45,14 +45,18 @@ public class InterfaceController {
     @DeleteMapping()
     public ResponseEntity<?> deleteInterface(@RequestBody Map<String,Object> map) {
         if(!map.isEmpty()) {
-            if (map.get("name") != null && map.get("")) {
-
+            if (map.get("name") != null && map.get("idDevice")!=null) {
+                try{
+                    interfaceService.deleteInterface(Long.parseLong(map.get("id").toString()),map.get("name").toString());
+                    return ResponseEntity.ok().build();
+                }catch (Exception e){
+                    return ResponseEntity.badRequest().body(e.getMessage());
+                }
             }else{
-
+                return ResponseEntity.badRequest().body(Message.INVALID_DATA);
             }
         }else{
-            return ResponseEntity.
+            return ResponseEntity.notFound().build();
         }
-
     }
 }

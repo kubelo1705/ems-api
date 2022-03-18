@@ -13,6 +13,6 @@ public interface InterfaceService {
     boolean checkIpAddress(Interface interfaceCheck);
     boolean checkDevice(Interface interfaceCheck);
     boolean checkValidInterface(Interface interfaceCheck);
-    void deleteInterface(Long id);
+    void deleteInterface(Long idDevice,String interfaceName);
     Interface updateInterface(Interface interfaceUpdate,Long id);
 }
