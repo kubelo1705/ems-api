@@ -9,4 +9,6 @@ public interface NtpServerRepository extends JpaRepository<Ntpserver, Long> {
     //Ntpserver findNtpServerByState(boolean state);
     Ntpserver findNtpServerById(Long id);
     void deleteAllByDevice_Id(Long id);
+    Ntpserver findNtpserverByDevice_Id(Long idDevice);
+    boolean existsByDevice_Id(Long idDevice);
 }

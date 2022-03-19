@@ -1,5 +1,7 @@
 package com.example.managedevices.parser;
 
+import com.example.managedevices.constant.CommonValue;
+import com.example.managedevices.constant.DeviceAttribute;
 import com.example.managedevices.constant.NtpAttribute;
 import com.example.managedevices.entity.*;
 import com.example.managedevices.utils.OutputUtils;
@@ -8,34 +10,36 @@ import java.util.*;
 
 public class OutputParser {
     public static void mapConfigurationToDevice(Map<String,String> configuration, Device device){
-        device.setName(configuration.get("Product name"));
-        device.setFirmwareVersion(configuration.get("Firmware version"));
-        device.setType(configuration.get("Firmware version").substring(0,3));
-        device.setSerialNumber(configuration.get("Serial number"));
+        device.setName(configuration.get(DeviceAttribute.PRODUCT_NAME));
+        device.setFirmwareVersion(configuration.get(DeviceAttribute.FIRMWARE_VERSION));
+        device.setType(configuration.get(DeviceAttribute.FIRMWARE_VERSION).substring(0,3));
+        device.setSerialNumber(configuration.get(DeviceAttribute.SERIAL_NUMBER));
+        device.setMacAddress(configuration.get(DeviceAttribute.MAC_BASE_ADDRESS));
+        device.setUnitIdentifier(configuration.get(DeviceAttribute.UNIT_IDENTIFIER));
     }
 
     public static void mapConfigurationToInterface(String[] configurations,Interface inf){
         inf.setName(configurations[0]);
-        inf.setState(Objects.equals(configurations[1], "Enabled"));
-        inf.setDhcp(Objects.equals(configurations[2], "Enabled"));
-        inf.setIpAddress(Objects.equals(configurations[3], "---") ?"":configurations[3]);
-        inf.setNetmask(Objects.equals(configurations[4], "---") ?"":configurations[4]);
-        inf.setGateway(Objects.equals(configurations[5], "---") ?"":configurations[5]);
-        inf.setInfo(Objects.equals(configurations[6], "---") ?"":configurations[6]);
+        inf.setState(Objects.equals(configurations[1], CommonValue.ENABLED));
+        inf.setDhcp(Objects.equals(configurations[2], CommonValue.ENABLED));
+        inf.setIpAddress(Objects.equals(configurations[3], CommonValue.EMPTY) ?"":configurations[3]);
+        inf.setNetmask(Objects.equals(configurations[4], CommonValue.EMPTY) ?"":configurations[4]);
+        inf.setGateway(Objects.equals(configurations[5], CommonValue.EMPTY) ?"":configurations[5]);
+        inf.setInfo(Objects.equals(configurations[6], CommonValue.EMPTY) ?"":configurations[6]);
     }
 
     public static void mapConfigurationToPort(String[] configurations, Port port){
-        port.setConnector(configurations[0].equals("---")?"":configurations[0]);
+        port.setConnector(configurations[0].equals(CommonValue.EMPTY)?"":configurations[0]);
         port.setPortName(configurations[1]);
-        port.setState(configurations[2].equals("Enabled"));
+        port.setState(configurations[2].equals(CommonValue.ENABLED));
         port.setSpeed(configurations[3]);
-        port.setMtu(configurations[4].equals("---")?"":configurations[4]);
+        port.setMtu(configurations[4].equals(CommonValue.EMPTY)?"":configurations[4]);
         port.setMdi(configurations[5]);
         port.setMacAddress(configurations[6]);
     }
 
     public static void mapStatusToPort(String status, Port port){
-        port.setStatus(status.equals("Enable"));
+        port.setStatus(status.equals(CommonValue.ENABLED));
     }
 
     public static List<Interface> mapConfigurationToInterfaces(String interfaceConfigurations){
@@ -68,7 +72,7 @@ public class OutputParser {
     public static Ntpserver mapConfigurationToNtp(String ntpConfiguration){
         Map<String,String> ntpMap=OutputUtils.toMapNtpConfiguration(ntpConfiguration);
         Ntpserver ntp=new Ntpserver();
-        ntp.setClient(ntpMap.get(NtpAttribute.CLIENT).equals("Enabled"));
+        ntp.setClient(ntpMap.get(NtpAttribute.CLIENT).equals(CommonValue.ENABLED));
         ntp.setDscp(Integer.parseInt(ntpMap.get(NtpAttribute.DSCP)));
         ntp.setNumberOfMessages(Integer.parseInt(ntpMap.get(NtpAttribute.NUMBER_OF_MESSAGES)));
         ntp.setOffset(Integer.parseInt(ntpMap.get(NtpAttribute.OFFSET)));

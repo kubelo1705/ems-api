@@ -30,6 +30,12 @@ public class Device {
     @Column(name = "serial_number")
     String serialNumber;
 
+    @Column(name="mac_base_address")
+    String macAddress;
+
+    @Column(name = "unit_identifier")
+    String unitIdentifier;
+
     @Column(columnDefinition = "integer default 22")
     int port=22;
 

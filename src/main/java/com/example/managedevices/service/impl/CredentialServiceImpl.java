@@ -32,25 +32,21 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    public boolean checkCredentialId(Long id) {
-        return credentialRepo.findCredentialById(id)!=null?true:false;
-    }
-
-    @Override
-    public boolean isUsed(Long id) {
-        return deviceRepo.existsByCredential_Id(id);
-    }
-
-    @Override
     public Credential updateCredential(Credential credential, Long id) {
-        if (checkCredentialId(id)) {
-            Credential credentialUpdate=credentialRepo.findCredentialById(id);
-
-            credentialUpdate.setName(credential.getName());
-            credentialUpdate.setUsername(credential.getUsername());
-            credentialUpdate.setPassword(credential.getPassword());
-
-            return credentialRepo.save(credentialUpdate);
+        if (credentialRepo.existsById(id)) {
+            if(!deviceRepo.existsByCredential_IdAndStatus(id,true)) {
+                Credential credentialUpdate = credentialRepo.findCredentialById(id);
+                try {
+                    credentialUpdate.setName(credential.getName());
+                    credentialUpdate.setUsername(credential.getUsername());
+                    credentialUpdate.setPassword(credential.getPassword());
+                    return credentialRepo.save(credentialUpdate);
+                }catch (Exception e){
+                    throw new EmsException(Message.INVALID_DATA);
+                }
+            }else{
+                throw new EmsException(Message.CREDENTIAL_IS_USED);
+            }
         }else{
             throw new EmsException(Message.NON_EXIST_CREDENTIAL);
         }
@@ -58,8 +54,12 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     public void deleteCredential(Long id) {
-        if (checkCredentialId(id)) {
-           credentialRepo.deleteById(id);
+        if (credentialRepo.existsById(id)) {
+            if(!deviceRepo.existsByCredential_IdAndStatus(id,true)) {
+                credentialRepo.deleteById(id);
+            }else {
+                throw new EmsException(Message.CREDENTIAL_IS_USED);
+            }
         }else {
             throw new EmsException(Message.NON_EXIST_CREDENTIAL);
         }

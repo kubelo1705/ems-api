@@ -1,6 +1,6 @@
 package com.example.managedevices.controller;
 
-import com.example.managedevices.constant.Command;
+import com.example.managedevices.constant.BaseCommand;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.service.DeviceService;
@@ -9,7 +9,6 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -118,8 +117,8 @@ public class DeviceController {
         Device device=deviceService.getDeviceById(id.get());
         if(device!=null){
             try {
-                CommandUtils.execute(device, device.getCredential(), Command.CONFIGURATION_EXPORT);
-                File file = ResourceUtils.getFile(Command.FILE_PATH);
+                CommandUtils.execute(device, device.getCredential(), BaseCommand.CONFIGURATION_EXPORT);
+                File file = ResourceUtils.getFile(BaseCommand.FILE_PATH);
                 byte[] data = FileUtils.readFileToByteArray(file);
                 InputStream inputStream = new BufferedInputStream(new ByteArrayInputStream(data));
                 InputStreamResource inputStreamResource = new InputStreamResource(inputStream);

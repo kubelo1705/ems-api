@@ -18,11 +18,10 @@ public class Message {
     public static final String INVALID_REQUEST="INVALID REQUEST";
 
     public static final String ERROR_CONNECTION="INVALID CREDENTIAL";
-    public static final String CREATED_CONNECTION="CREATED CONNECTION";
+    public static final String HAVENT_CREATED_CONNECTION ="HAVEN'T CREATED CONNECTION TO THIS DEVICE";
 
     public static final String INVALID_DATA="INVALID DATA";
 
     public static final String DUPLICATE_NTP="DUPLICATE NTP";
     public static final String SUCCESSFUL ="SUCCESSFUL";
-
 }

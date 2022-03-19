@@ -1,6 +1,6 @@
 package com.example.managedevices.constant;
 
-public class Command {
+public class BaseCommand {
     public static String PORT_CONFIGURE="port show configuration";
     public static String INTERFACE_CONFIGURE="interface show";
     public static String DEVICE_CONFIGURE="board show info";
@@ -12,5 +12,6 @@ public class Command {
     public static String ADD_INTERFACE="interface add interface_name address ip_address port port_name state interface_state netmask netmask_address";
     public static String ADD_NTP="ntp add ip_address";
     public static String DELETE_INTERFACE="interface delete interface_name";
+    public static String EDIT_INTERFACE="interface edit interface_name name new_interface_name address ip_address port port_name state interface_state netmask netmask_address";
     public static String DELETE_NTP="ntp delete ip_address";
 }

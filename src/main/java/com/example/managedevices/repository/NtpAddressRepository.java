@@ -11,4 +11,6 @@ public interface NtpAddressRepository extends JpaRepository<Ntpaddress,Long> {
     boolean existsByNtpserver_IdAndAddress(Long id,String address);
     List<Ntpaddress> findNtpaddressByAddress(String address);
     void deleteAllByNtpserver_Id(Long id);
+    void deleteByAddress(String address);
+
 }

@@ -8,11 +8,10 @@ import java.util.List;
 public interface InterfaceService {
     List<Interface> getAllInterfaces();
     List<Interface> getInterfacesByDeviceId(Long id);
-    EmsResponse addInterface(Interface interfaceAdd);
+    Interface addInterface(Interface interfaceAdd,Long idDevice);
     boolean checkNetmask(Interface interfaceCheck);
     boolean checkIpAddress(Interface interfaceCheck);
-    boolean checkDevice(Interface interfaceCheck);
     boolean checkValidInterface(Interface interfaceCheck);
     void deleteInterface(Long idDevice,String interfaceName);
-    Interface updateInterface(Interface interfaceUpdate,Long id);
+    Interface updateInterface(String interfaceName,Interface interfaceUpdate,Long idDevice);
 }

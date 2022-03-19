@@ -20,7 +20,7 @@ public class Ntpaddress {
     String address;
 
     @Column
-    boolean status;
+    boolean status=false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ntpserver_id",nullable = false)
@@ -32,6 +32,10 @@ public class Ntpaddress {
         this.address = address;
         this.status = status;
         this.ntpserver = ntpservers;
+    }
+
+    public Ntpaddress(String address) {
+        this.address = address;
     }
 
     public Ntpaddress() {

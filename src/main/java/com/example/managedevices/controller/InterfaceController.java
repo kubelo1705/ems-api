@@ -1,6 +1,5 @@
 package com.example.managedevices.controller;
 
-import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.exception.EmsException;
@@ -9,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Map;
 import java.util.Optional;
 
@@ -20,24 +18,37 @@ public class InterfaceController {
     InterfaceService interfaceService;
 
     @PostMapping("")
-    public ResponseEntity<?> addInterface(@Valid @RequestBody Interface interfaceAdd) {
-        try{
-            interfaceService.addInterface(interfaceAdd);
-            return ResponseEntity.ok(Message.SUCCESSFUL);
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body(Message.UNSUCCESSFUL);
+    public ResponseEntity<?> addInterface(@RequestBody Map<String,Object> map) {
+        if(map.get("idDevice")!=null && map.get("interface")!=null) {
+            try {
+                Long idDevice=Long.parseLong(map.get("idDevice").toString());
+                Interface interfaceAdd=(Interface) map.get("interface");
+                interfaceService.addInterface(interfaceAdd,idDevice);
+                return ResponseEntity.ok(Message.SUCCESSFUL);
+            } catch (Exception e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }else {
+            return ResponseEntity.badRequest().body(Message.INVALID_DATA);
         }
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<?> updateInterface(@Valid @RequestBody Interface interfaceUpdate, @PathVariable Optional<Long> id) {
-        if (id.isPresent()) {
-            try {
-                return ResponseEntity.ok(interfaceService.updateInterface(interfaceUpdate, id.get()));
-            }catch (Exception e){
-                return ResponseEntity.badRequest().body(e.getMessage());
+    @PutMapping()
+    public ResponseEntity<?> updateInterface( @RequestBody Map<String,Object> map) {
+        if (map!=null){
+            if(map.get("idDevice")!=null && map.get("interface")!=null){
+                try {
+                    Long idDevice = Long.parseLong(map.get("idDevice").toString());
+                    String interfaceName=map.get("interfaceName").toString();
+                    Interface inf = (Interface) map.get("interface");
+                    return ResponseEntity.ok(interfaceService.updateInterface(interfaceName,inf,idDevice));
+                }catch (Exception e){
+                    return ResponseEntity.badRequest().body(e.getMessage());
+                }
+            }else {
+                return ResponseEntity.badRequest().body(Message.INVALID_DATA);
             }
-        }else{
+        }else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
     }
@@ -47,8 +58,8 @@ public class InterfaceController {
         if(!map.isEmpty()) {
             if (map.get("name") != null && map.get("idDevice")!=null) {
                 try{
-                    interfaceService.deleteInterface(Long.parseLong(map.get("id").toString()),map.get("name").toString());
-                    return ResponseEntity.ok().build();
+                    interfaceService.deleteInterface(Long.parseLong(map.get("idDevice").toString()),map.get("name").toString());
+                    return ResponseEntity.ok(Message.SUCCESSFUL);
                 }catch (Exception e){
                     return ResponseEntity.badRequest().body(e.getMessage());
                 }

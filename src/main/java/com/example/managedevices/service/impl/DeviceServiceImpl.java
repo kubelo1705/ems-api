@@ -1,6 +1,6 @@
 package com.example.managedevices.service.impl;
 
-import com.example.managedevices.constant.Command;
+import com.example.managedevices.constant.BaseCommand;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Interface;
@@ -16,16 +16,12 @@ import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.example.managedevices.parser.OutputParser.mapConfigurationToInterface;
 
 @Service
 @RequiredArgsConstructor
@@ -103,18 +99,16 @@ public class DeviceServiceImpl implements DeviceService {
         interfaceRepo.deleteAllByDevice_Id(device.getId());
         portRepo.deleteAllByDevice_Id(device.getId());
         ntpRepo.deleteAllByDevice_Id(device.getId());
-        System.out.println(1);
         System.out.println(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
-        System.out.println(1);
         ntpAddressRepo.deleteAllByNtpserver_Id(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
         try {
-            String deviceConfigure = CommandUtils.execute(device, device.getCredential(), Command.DEVICE_CONFIGURE);
+            String deviceConfigure = CommandUtils.execute(device, device.getCredential(), BaseCommand.DEVICE_CONFIGURE);
             if (!deviceConfigure.isBlank()) {
                 device.setStatus(true);
                 OutputParser.mapConfigurationToDevice(OutputUtils.toMapDeviceConfiguration(deviceConfigure), device);
                 log.debug("MAP CONFIGURATIONS TO DEVICE:" + device.getIpAddress());
 
-                String interfaceConfigurations = CommandUtils.execute(device, device.getCredential(), Command.INTERFACE_CONFIGURE);
+                String interfaceConfigurations = CommandUtils.execute(device, device.getCredential(), BaseCommand.INTERFACE_CONFIGURE);
                 if (!interfaceConfigurations.isBlank()) {
 
                     Set<Interface> infs = new HashSet<>();
@@ -129,7 +123,7 @@ public class DeviceServiceImpl implements DeviceService {
                     log.debug("EMPTY INTERFACES");
                 }
 
-                String portConfigurations = CommandUtils.execute(device, device.getCredential(), Command.PORT_CONFIGURE);
+                String portConfigurations = CommandUtils.execute(device, device.getCredential(), BaseCommand.PORT_CONFIGURE);
 
                 if (!portConfigurations.isBlank()) {
                     Set<Port> ports = new HashSet<>();
@@ -144,7 +138,7 @@ public class DeviceServiceImpl implements DeviceService {
                     log.debug("EMPTY PORTS");
                 }
 
-                String ntpConfiguration = CommandUtils.execute(device, device.getCredential(), Command.NTP_CONFIGURE);
+                String ntpConfiguration = CommandUtils.execute(device, device.getCredential(), BaseCommand.NTP_CONFIGURE);
                 if (!ntpConfiguration.isBlank()) {
                     Ntpserver ntpserver = OutputParser.mapConfigurationToNtp(ntpConfiguration);
                     ntpserver.setDevice(device);

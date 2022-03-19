@@ -61,4 +61,10 @@ public class OutputUtils {
         }
         return result.trim();
     }
+
+    public static boolean isErrorOutput(String serialDevice,String command,String output){
+        output=output.substring(output.indexOf(serialDevice)+serialDevice.length()+1,output.lastIndexOf(serialDevice));
+        output=output.replace("\n","").replace("\r","").trim();
+        return !(output.length()==command.length());
+    }
 }

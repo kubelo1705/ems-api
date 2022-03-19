@@ -9,9 +9,9 @@ import java.util.List;
 @Repository
 public interface InterfaceRepository extends JpaRepository<Interface,Long> {
     List<Interface> findInterfaceByDevice_Id(Long id);
-    Interface findInterfaceById(Long id);
     void deleteById(Long id);
     void deleteAllByDevice_Id(Long id);
     boolean existsByNameAndDevice_Id(String name,Long idDevice);
     void deleteByNameAndDevice_Id(String name,Long idDevice);
+    Interface findByName(String name);
 }

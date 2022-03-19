@@ -1,25 +1,25 @@
 package com.example.managedevices.service.impl;
 
-import com.example.managedevices.constant.Command;
+import com.example.managedevices.constant.BaseCommand;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.repository.DeviceRepository;
 import com.example.managedevices.repository.InterfaceRepository;
-import com.example.managedevices.response.EmsResponse;
 import com.example.managedevices.service.InterfaceService;
 import com.example.managedevices.utils.CommandUtils;
 import com.example.managedevices.utils.OutputUtils;
 import com.example.managedevices.vadilation.EntityValidator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class InterfaceServiceImpl implements InterfaceService {
     private final InterfaceRepository interfaceRepo;
     private final DeviceRepository deviceRepo;
@@ -35,24 +35,22 @@ public class InterfaceServiceImpl implements InterfaceService {
     }
 
     @Override
-    public EmsResponse addInterface(Interface interfaceAdd) {
+    public Interface addInterface(Interface interfaceAdd,Long idDevice) {
         if (interfaceRepo.existsById(interfaceAdd.getId())) {
-            if (checkValidInterface(interfaceAdd)) {
-                Device device=deviceRepo.findDeviceById(interfaceAdd.getDevice().getId());
-                String command = Command.ADD_INTERFACE
-                        .replace("interface_name",interfaceAdd.getName())
-                        .replace("ip_address", interfaceAdd.getIpAddress())
-                        .replace("port_name", interfaceAdd.getPort())
-                        .replace("interface_state", interfaceAdd.isState()?"enable":"disable")
-                        .replace("netmask_address", interfaceAdd.getNetmask());
+            if(deviceRepo.existsById(idDevice)) {
+                if (EntityValidator.isValidIp(interfaceAdd.getIpAddress())) {
+                    Device device = deviceRepo.findDeviceById(interfaceAdd.getDevice().getId());
+                    String command = CommandUtils.toInterfaceCommand(BaseCommand.ADD_INTERFACE,interfaceAdd);
 
-                String output=OutputUtils.formatOutput(CommandUtils.execute(device,device.getCredential(),command));
-                if (output.isEmpty())
-                    return new EmsResponse(HttpStatus.OK,Message.SUCCESSFUL,interfaceRepo.save(interfaceAdd));
-                else
-                    return new EmsResponse(HttpStatus.BAD_REQUEST,Message.UNSUCCESSFUL,output);
-            } else {
-                throw new EmsException(Message.INVALID_DATA);
+                    String output = (CommandUtils.execute(device, device.getCredential(), command));
+                    if(!OutputUtils.isErrorOutput(device.getSerialNumber(),command,output)) {
+                            return interfaceAdd;
+                    }else {
+                        throw new EmsException(OutputUtils.formatOutput(output));
+                    }
+                } else {
+                    throw new EmsException(Message.INVALID_DATA);
+                }
             }
         }
         throw new EmsException(Message.DUPLICATE_ID);
@@ -68,21 +66,9 @@ public class InterfaceServiceImpl implements InterfaceService {
         return EntityValidator.isValidIp(interfaceCheck.getIpAddress());
     }
 
-    @Override
-    public boolean checkDevice(Interface interfaceCheck) {
-        try {
-            if(interfaceCheck.getDevice()!=null)
-                return deviceRepo.existsById(interfaceCheck.getDevice().getId());
-            else
-                return false;
-        }catch (Exception e){
-            return false;
-        }
-    }
 
     @Override
     public boolean checkValidInterface(Interface interfaceCheck) {
-        if (checkDevice(interfaceCheck)) {
             if (checkNetmask(interfaceCheck)) {
                 if (checkIpAddress(interfaceCheck)) {
                     return true;
@@ -90,8 +76,6 @@ public class InterfaceServiceImpl implements InterfaceService {
                 throw new EmsException(Message.INVALID_NETMASK);
             }
             throw new EmsException(Message.INVALID_IP);
-        }
-        throw new EmsException(Message.NON_EXIST_DEVICE);
     }
 
     @Override
@@ -99,11 +83,13 @@ public class InterfaceServiceImpl implements InterfaceService {
         if(deviceRepo.existsById(idDevice)) {
             if (interfaceRepo.existsByNameAndDevice_Id(interfaceName,idDevice)) {
                 Device device=deviceRepo.findDeviceById(idDevice);
-                String command=Command.DELETE_INTERFACE.replace("interface_name",interfaceName);
-                String output = OutputUtils.formatOutput(CommandUtils.execute(device, device.getCredential(),command));
-                if(!output.isEmpty()){
+                String command= BaseCommand.DELETE_INTERFACE.replace("interface_name",interfaceName);
+                String output = (CommandUtils.execute(device, device.getCredential(),command));
+                if(OutputUtils.isErrorOutput(device.getSerialNumber(),command,output)){
+                    output=OutputUtils.formatOutput(output);
                     throw new EmsException(output);
-                }else {
+                }
+                else{
                     interfaceRepo.deleteByNameAndDevice_Id(interfaceName,idDevice);
                 }
             } else {
@@ -115,25 +101,46 @@ public class InterfaceServiceImpl implements InterfaceService {
     }
 
     @Override
-    public Interface updateInterface(Interface interfaceUpdate, Long id) {
-        if (interfaceRepo.existsById(id)) {
-            if (checkValidInterface(interfaceUpdate)) {
-                Interface inf = interfaceRepo.findInterfaceById(id);
+    public Interface updateInterface(String interfaceName,Interface interfaceUpdate, Long idDevice) {
+        if(deviceRepo.existsById(idDevice)){
+            if(interfaceUpdate.getName()!=null){
+                if(interfaceRepo.existsByNameAndDevice_Id(interfaceUpdate.getName(), idDevice)){
+                    String basicCommand=BaseCommand.EDIT_INTERFACE;
+                    Interface inf=interfaceRepo.findByName(interfaceUpdate.getName());
+                    Device device=deviceRepo.findDeviceById(idDevice);
 
-                inf.setName(interfaceUpdate.getName());
-                inf.setInfo((interfaceUpdate.getInfo()));
-                inf.setGateway(interfaceUpdate.getGateway());
-                inf.setNetmask(interfaceUpdate.getNetmask());
-                inf.setDhcp(interfaceUpdate.isDhcp());
-                inf.setState(interfaceUpdate.isState());
-                inf.setIpAddress(interfaceUpdate.getIpAddress());
+                    if(interfaceUpdate.getName()!=interfaceName){
+                        basicCommand=basicCommand.replace("interface_name",inf.getName());
+                        inf.setName(interfaceUpdate.getName());
+                    }
+                    if(interfaceUpdate.getNetmask()!=null){
+                        inf.setNetmask(interfaceUpdate.getNetmask());
+                    }
+                    if(interfaceUpdate.getPort()!=null){
+                        inf.setPort(interfaceUpdate.getPort());
+                    }
+                    if(interfaceUpdate.getIpAddress()!=null){
+                        inf.setIpAddress(inf.getIpAddress());
+                    }
+                    if(interfaceUpdate.isState()!=false){
+                        inf.setState(true);
+                    }
 
-                return interfaceRepo.save(inf);
-            } else {
+                    String command=CommandUtils.toInterfaceCommand(basicCommand,inf);
+                    String output=CommandUtils.execute(device,device.getCredential(),command);
+                    if(OutputUtils.isErrorOutput(device.getSerialNumber(),command,output)){
+                        throw new EmsException(OutputUtils.formatOutput(output));
+                    }else {
+                        return interfaceRepo.save(inf);
+                    }
+                }else {
+                    throw new EmsException(Message.NON_EXIST_INTERFACE);
+                }
+            }else{
                 throw new EmsException(Message.INVALID_DATA);
             }
-        } else {
-            throw new EmsException(Message.NON_EXIST_INTERFACE);
+        }else {
+            throw new EmsException(Message.NON_EXIST_DEVICE);
         }
     }
 }
