@@ -25,9 +25,10 @@ public class NtpServerServiceImpl implements NtpServerService {
     private final NtpAddressRepository ntpAddressRepo;
     private final DeviceRepository deviceRepo;
 
+
     @Override
-    public List<Ntpserver> getAllNtpservers() {
-        return ntpServerRepo.findAll();
+    public Ntpserver getNtpserverByDeviceId(Long id) {
+        return ntpServerRepo.findNtpserverByDevice_Id(id);
     }
 
     @Override

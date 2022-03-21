@@ -8,10 +8,10 @@ import java.util.List;
 public interface DeviceService {
     List<Device> getAllDevices();
     Device addDevice(Device device);
-    boolean checkValidIpv4(Device device);
+    boolean isValidDevice(Device device);
     Device getDeviceById(Long id);
     List<Device> getDevicesByType(String type);
-    List<Device> getDeviceByIpaddress(String ipAddress);
+    Device getDeviceByIpaddress(String ipAddress);
     void deleteDeviceById(Long id);
     boolean isValidId(Long id);
     Device resync(Device device);

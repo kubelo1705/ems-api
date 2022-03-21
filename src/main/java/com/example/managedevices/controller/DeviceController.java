@@ -28,94 +28,114 @@ public class DeviceController {
     DeviceService deviceService;
 
     @PostMapping("command/{id}")
-    public ResponseEntity executeCommand(@PathVariable Optional<Long> id,@RequestBody Map<String,Object> command){
-        if(id.isPresent()){
-            try{
-                return ResponseEntity.ok(deviceService.executeCommandByIdDevice(id.get(),command.get("command").toString()));
-            }catch(Exception e){
+    public ResponseEntity executeCommand(@PathVariable Optional<Long> id, @RequestBody Map<String, Object> command) {
+        if (id.isPresent()) {
+            try {
+                return ResponseEntity.ok(deviceService.executeCommandByIdDevice(id.get(), command.get("command").toString()));
+            } catch (Exception e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
             }
-        }else{
+        } else {
             return ResponseEntity.badRequest().body(Message.INVALID_DATA);
         }
 
     }
+
     @GetMapping("")
     public ResponseEntity<?> getAllDevices() {
         List<Device> devices = deviceService.getAllDevices();
         if (devices.isEmpty()) {
-            return ResponseEntity.ok().body("Empty");
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(deviceService.getAllDevices());
+        return ResponseEntity.ok(devices);
     }
 
     @PostMapping("")
-    public ResponseEntity<?> addDevice(@Valid @RequestBody Device device) {
-        try{
-            return ResponseEntity.ok(deviceService.addDevice(device));
-        }catch(Exception e){
+    public ResponseEntity<?> addDevice(@RequestBody Device device) {
+        try {
+            Device device1=deviceService.addDevice(device);
+            if(device!=null) {
+                return ResponseEntity.ok().build();
+            }else {
+                return ResponseEntity.accepted().build();
+            }
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-
     }
 
     @GetMapping("/search/id/{id}")
     public ResponseEntity<?> getDeviceById(@PathVariable Optional<Long> id) {
-        if(id.isPresent()) {
-            try{
-                return ResponseEntity.ok(deviceService.getDeviceById(id.get()));
-            }catch (Exception e){
+        if (id.isPresent()) {
+            try {
+                Device device = deviceService.getDeviceById(id.get());
+                if (device == null) {
+                    return ResponseEntity.notFound().build();
+                } else {
+                    return ResponseEntity.ok(deviceService.getDeviceById(id.get()));
+                }
+            } catch (Exception e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
             }
-        }else{
+        } else {
             return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
 
     @GetMapping("search/ipaddress/{ipAddress}")
     public ResponseEntity<?> searchDeviceByIpaddress(@PathVariable Optional<String> ipAddress) {
-        if(ipAddress.isPresent()) {
-            try{
-                return ResponseEntity.ok(deviceService.getDeviceByIpaddress(ipAddress.get()));
-            }catch (Exception e){
+        if (ipAddress.isPresent()) {
+            try {
+                Device device=deviceService.getDeviceByIpaddress(ipAddress.get());
+                if(device==null){
+                    return ResponseEntity.notFound().build();
+                }else {
+                    return ResponseEntity.ok(device);
+                }
+            } catch (Exception e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
             }
-        }else{
+        } else {
             return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
 
     @GetMapping("search/type/{type}")
     public ResponseEntity<?> searchDeviceByType(@PathVariable Optional<String> type) {
-        if(type.isPresent()) {
-            try{
-                return ResponseEntity.ok(deviceService.getDevicesByType(type.get()));
-            }catch(Exception e){
+        if (type.isPresent()) {
+            try {
+                List<Device> devices= deviceService.getDevicesByType(type.get());
+                if(devices.isEmpty()){
+                    return ResponseEntity.notFound().build();
+                }else {
+                    return ResponseEntity.ok(devices);
+                }
+            } catch (Exception e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
             }
-        }else {
+        } else {
             return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteDevice(@PathVariable Optional<Long> id){
-        if(id.isPresent()) {
+    public ResponseEntity<?> deleteDevice(@PathVariable Optional<Long> id) {
+        if (id.isPresent()) {
             try {
                 deviceService.deleteDeviceById(id.get());
-                return ResponseEntity.ok(Message.DELETE_SUCCESSFUL);
-            }catch (Exception e){
+                return ResponseEntity.ok(Message.SUCCESSFUL);
+            } catch (Exception e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
             }
-        }
-        else {
+        } else {
             return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
+
     @GetMapping("download/{id}")
     public ResponseEntity downloadFile(@PathVariable Optional<Long> id) {
-        Device device=deviceService.getDeviceById(id.get());
-        if(device!=null){
+        Device device = deviceService.getDeviceById(id.get());
+        if (device != null) {
             try {
                 CommandUtils.execute(device, device.getCredential(), BaseCommand.CONFIGURATION_EXPORT);
                 File file = ResourceUtils.getFile(BaseCommand.FILE_PATH);
@@ -126,14 +146,14 @@ public class DeviceController {
             } catch (Exception e) {
                 return ResponseEntity.badRequest().body(e.getMessage());
             }
-        }else{
+        } else {
             return ResponseEntity.badRequest().body(Message.NON_EXIST_DEVICE);
         }
     }
 
     @GetMapping("load/{id}")
-    public ResponseEntity reloadDevice(@PathVariable Optional<Long> id){
-        Device device=deviceService.resync(deviceService.getDeviceById(id.get()));
+    public ResponseEntity reloadDevice(@PathVariable Optional<Long> id) {
+        Device device = deviceService.resync(deviceService.getDeviceById(id.get()));
         return ResponseEntity.ok(device);
     }
 }

@@ -6,7 +6,7 @@ import com.example.managedevices.entity.Ntpserver;
 import java.util.List;
 
 public interface NtpServerService {
-    List<Ntpserver> getAllNtpservers();
+    Ntpserver getNtpserverByDeviceId(Long id);
     Ntpaddress addNtpserver(Long idDevice, Ntpaddress ntpaddress);
     //Ntpserver updateNtpserver(Ntpserver ntpServer, Long id);
     void deleteNtpserver(Long idDevice,String address);

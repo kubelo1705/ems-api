@@ -13,9 +13,10 @@ import java.util.Optional;
 public interface DeviceRepository extends JpaRepository<Device,Long> {
     Device findDeviceById(Long id);
     List<Device> findDeviceByType(String type);
-    List<Device> findDevicesByIpAddressContains(String ipAddress);
+    Device findDeviceByIpAddress(String ipAddress);
     boolean existsByCredential_Id(Long id);
     void deleteDeviceById(Long id);
     boolean existsByIdAndStatus(Long id,boolean status);
     boolean existsByCredential_IdAndStatus(Long idCredential,boolean status);
+    boolean existsByIpAddress(String ipAddress);
 }

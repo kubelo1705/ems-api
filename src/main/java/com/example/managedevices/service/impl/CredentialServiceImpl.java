@@ -53,15 +53,16 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     @Override
-    public void deleteCredential(Long id) {
+    public boolean deleteCredential(Long id) {
         if (credentialRepo.existsById(id)) {
             if(!deviceRepo.existsByCredential_IdAndStatus(id,true)) {
                 credentialRepo.deleteById(id);
+                return true;
             }else {
                 throw new EmsException(Message.CREDENTIAL_IS_USED);
             }
         }else {
-            throw new EmsException(Message.NON_EXIST_CREDENTIAL);
+            return false;
         }
     }
 }

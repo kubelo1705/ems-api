@@ -20,8 +20,8 @@ public class PortServiceImpl implements PortService {
     }
 
     @Override
-    public Port addNtpserver(Ntpserver ntpServer) {
-        return null;
+    public List<Port> getPortByDeviceId(Long id) {
+        return portRepo.findPortsByDevice_Id(id);
     }
 
 }

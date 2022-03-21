@@ -41,43 +41,41 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Device addDevice(Device device) {
-        if (checkValidIpv4(device))
+        if (isValidDevice(device))
             return deviceRepo.save(device);
-        else
-            throw new EmsException(Message.INVALID_IP);
+        return null;
     }
 
     @Override
-    public boolean checkValidIpv4(Device device) {
-        return EntityValidator.isValidIp(device.getIpAddress());
+    public boolean isValidDevice(Device device) {
+        if (device.getIpAddress() != null) {
+            if(EntityValidator.isValidIp(device.getIpAddress())) {
+                if(!deviceRepo.existsByIpAddress(device.getIpAddress())){
+                    return true;
+                }else {
+                    throw new EmsException(Message.DUPLICATE_DEVICE);
+                }
+            }
+        }
+        throw new EmsException(Message.INVALID_DATA);
     }
 
     @Override
     public Device getDeviceById(Long id) {
         Device device = deviceRepo.findDeviceById(id);
-        if (device != null) {
-            return device;
-        } else {
-            throw new EmsException(Message.NON_EXIST_DEVICE);
-        }
+        return device;
     }
 
     @Override
     public List<Device> getDevicesByType(String type) {
         List<Device> devices = deviceRepo.findDeviceByType(type);
-        if (devices.isEmpty()) {
-            throw new EmsException(Message.NON_EXIST_DEVICE);
-        }
         return devices;
     }
 
     @Override
-    public List<Device> getDeviceByIpaddress(String ipAddress) {
-        List<Device> devices = deviceRepo.findDevicesByIpAddressContains(ipAddress);
-        if (devices.isEmpty()) {
-            throw new EmsException(Message.NON_EXIST_DEVICE);
-        }
-        return devices;
+    public Device getDeviceByIpaddress(String ipAddress) {
+        Device device = deviceRepo.findDeviceByIpAddress(ipAddress);
+        return device;
     }
 
     @Override
@@ -99,7 +97,6 @@ public class DeviceServiceImpl implements DeviceService {
         interfaceRepo.deleteAllByDevice_Id(device.getId());
         portRepo.deleteAllByDevice_Id(device.getId());
         ntpRepo.deleteAllByDevice_Id(device.getId());
-        System.out.println(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
         ntpAddressRepo.deleteAllByNtpserver_Id(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
         try {
             String deviceConfigure = CommandUtils.execute(device, device.getCredential(), BaseCommand.DEVICE_CONFIGURE);
@@ -124,7 +121,6 @@ public class DeviceServiceImpl implements DeviceService {
                 }
 
                 String portConfigurations = CommandUtils.execute(device, device.getCredential(), BaseCommand.PORT_CONFIGURE);
-
                 if (!portConfigurations.isBlank()) {
                     Set<Port> ports = new HashSet<>();
                     ports.addAll(OutputParser.mapConfigurationToPorts(portConfigurations));

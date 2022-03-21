@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,6 +17,20 @@ import java.util.Optional;
 public class InterfaceController {
     @Autowired
     InterfaceService interfaceService;
+
+    @GetMapping("device/{id}")
+    public ResponseEntity getInterfacesByDeviceId(@PathVariable Optional<Long> id){
+        if(id.isPresent()){
+            List<Interface> list=interfaceService.getInterfacesByDeviceId(id.get());
+            if(list.isEmpty()){
+                return ResponseEntity.notFound().build();
+            }else {
+                return ResponseEntity.ok(list);
+            }
+        }else {
+            return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
+        }
+    }
 
     @PostMapping("")
     public ResponseEntity<?> addInterface(@RequestBody Map<String,Object> map) {

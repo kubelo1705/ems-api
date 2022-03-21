@@ -5,10 +5,10 @@ import com.example.managedevices.entity.Credential;
 import com.example.managedevices.service.CredentialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -19,7 +19,11 @@ public class CredentialController {
 
     @GetMapping("")
     public ResponseEntity<?> getAllCredentials(){
-        return ResponseEntity.ok(credentialService.getAllCredentials());
+        List<Credential> list=credentialService.getAllCredentials();
+        if(list.isEmpty()){
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(list);
     }
 
     @PostMapping("")
@@ -45,10 +49,17 @@ public class CredentialController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteCredential(@PathVariable Optional<Long> id, @Valid @RequestBody Credential credential) {
+    public ResponseEntity<?> deleteCredential(@PathVariable Optional<Long> id) {
         if (id.isPresent()) {
-            credentialService.deleteCredential(id.get());
-            return ResponseEntity.ok(Message.DELETE_SUCCESSFUL);
+            try{
+                if(credentialService.deleteCredential(id.get())){
+                    return ResponseEntity.ok(Message.SUCCESSFUL);
+                }else {
+                    return ResponseEntity.notFound().build();
+                }
+            }catch (Exception e){
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
         }else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }

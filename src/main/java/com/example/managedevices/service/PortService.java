@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface PortService {
     List<Port> getAllPorts();
-    Port addNtpserver(Ntpserver ntpServer);
+    List<Port> getPortByDeviceId(Long id);
 }

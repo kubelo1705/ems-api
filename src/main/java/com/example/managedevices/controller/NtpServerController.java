@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/v1/so/ntpservers")
@@ -18,9 +19,18 @@ public class NtpServerController {
     @Autowired
     NtpServerService ntpServerService;
 
-    @GetMapping()
-    public ResponseEntity getAllNtpservers(){
-        return ResponseEntity.ok(ntpServerService.getAllNtpservers());
+    @GetMapping("device/{id}")
+    public ResponseEntity getNtpsevrerByDeviceId(@PathVariable Optional<Long> id){
+        if(id.isPresent()){
+            Ntpserver ntpserver=ntpServerService.getNtpserverByDeviceId(id.get());
+            if(ntpserver==null){
+                return ResponseEntity.notFound().build();
+            }else {
+                return ResponseEntity.ok(ntpserver);
+            }
+        }else{
+            return  ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
+        }
     }
 
     @PostMapping()
