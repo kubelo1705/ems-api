@@ -1,6 +1,11 @@
-package com.example.managedevices.vadilation;
+package com.example.managedevices.utils;
 
-public class EntityValidator {
+import com.example.managedevices.entity.Credential;
+
+/**
+ * validate data input
+ */
+public class ValidationUtils {
     public static boolean isValidIp(String ip){
         String[] subIps=ip.split("\\.");
         try{
@@ -29,6 +34,15 @@ public class EntityValidator {
         }catch (Exception e){
             return false;
         }
+    }
+    public static boolean isValidCredential(Credential credential){
+        String name=credential.getName();
+        String username= credential.getUsername();
+        String password= credential.getPassword();
+        if(name !=null && username!=null && !username.contains(" ") && password!=null && !password.contains(" ")){
+            return true;
+        }
+        return false;
     }
 
 }

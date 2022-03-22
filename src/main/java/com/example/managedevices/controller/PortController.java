@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/v1/so/ports")
+@RequestMapping("api/v1/ports")
 public class PortController {
     @Autowired
     PortService portService;
@@ -23,12 +23,7 @@ public class PortController {
     @GetMapping("/device/{id}")
     public ResponseEntity<?> getPortsByDeviceId(@PathVariable Optional<Long> id){
         if(id.isPresent()){
-            List<Port> list=portService.getPortByDeviceId(id.get());
-            if(list.isEmpty()){
-                return ResponseEntity.notFound().build();
-            }else {
-                return ResponseEntity.ok(list);
-            }
+            return ResponseEntity.ok(portService.getPortByDeviceId(id.get()));
         }else {
             return  ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }

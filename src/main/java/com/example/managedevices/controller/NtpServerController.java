@@ -2,7 +2,6 @@ package com.example.managedevices.controller;
 
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Ntpaddress;
-import com.example.managedevices.entity.Ntpserver;
 import com.example.managedevices.service.NtpServerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,41 +12,32 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/v1/so/ntpservers")
+@RequestMapping("api/v1/ntpservers")
 @Transactional
 public class NtpServerController {
     @Autowired
     NtpServerService ntpServerService;
 
     @GetMapping("device/{id}")
-    public ResponseEntity getNtpsevrerByDeviceId(@PathVariable Optional<Long> id){
-        if(id.isPresent()){
-            Ntpserver ntpserver=ntpServerService.getNtpserverByDeviceId(id.get());
-            if(ntpserver==null){
-                return ResponseEntity.notFound().build();
-            }else {
-                return ResponseEntity.ok(ntpserver);
-            }
-        }else{
-            return  ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
+    public ResponseEntity getNtpsevrerByDeviceId(@PathVariable Optional<Long> id) {
+        if (id.isPresent()) {
+            return ResponseEntity.ok(ntpServerService.getNtpserverByDeviceId(id.get()));
+        } else {
+            return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
 
     @PostMapping()
-    public ResponseEntity addNtpserver(@RequestBody Map<String,Object> map){
-        if(map!=null){
-            if(map.get("idDevice")!=null && map.get("address")!=null){
-                try{
-                    Long idDevice=Long.parseLong(map.get("idDevice").toString());
-                    String address=map.get("address").toString();
-                    return ResponseEntity.ok(ntpServerService.addNtpserver(idDevice,new Ntpaddress(address)));
-                }catch (Exception e){
-                    return ResponseEntity.badRequest().body(e.getMessage());
-                }
-            }else {
+    public ResponseEntity addNtpserver(@RequestBody Map<String, Object> map) {
+        if (!map.isEmpty()) {
+            if (map.get("idDevice") != null && map.get("address") != null) {
+                Long idDevice = Long.parseLong(map.get("idDevice").toString());
+                String address = map.get("address").toString();
+                return ResponseEntity.ok(ntpServerService.addNtpserver(idDevice, new Ntpaddress(address)));
+            } else {
                 return ResponseEntity.badRequest().body(Message.INVALID_DATA);
             }
-        }else{
+        } else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
 
@@ -63,19 +53,15 @@ public class NtpServerController {
 //    }
 
     @DeleteMapping()
-    public ResponseEntity deleteNtpserver(@RequestBody Map<String,Object> map){
-        if(map!=null) {
+    public ResponseEntity deleteNtpserver(@RequestBody Map<String, Object> map) {
+        if (!map.isEmpty()) {
             if (map.get("address") != null && map.get("idDevice") != null) {
-                try {
-                    ntpServerService.deleteNtpserver(Long.parseLong(map.get("idDevice").toString()), map.get("address").toString());
-                    return ResponseEntity.ok(Message.SUCCESSFUL);
-                } catch (Exception e) {
-                    return ResponseEntity.badRequest().body(e.getMessage());
-                }
+                ntpServerService.deleteNtpserver(Long.parseLong(map.get("idDevice").toString()), map.get("address").toString());
+                return ResponseEntity.ok(Message.SUCCESSFUL);
             } else {
                 return ResponseEntity.badRequest().body(Message.INVALID_DATA);
             }
-        }else {
+        } else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
     }

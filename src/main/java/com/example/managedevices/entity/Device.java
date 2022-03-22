@@ -40,7 +40,7 @@ public class Device {
     int port=22;
 
     @Column(columnDefinition = "boolean default false")
-    boolean status=false;
+    boolean isConnected=false;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude @ToString.Exclude
@@ -48,11 +48,11 @@ public class Device {
     Credential credential;
 
     @OneToMany(mappedBy = "device",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
-    Set<Interface> interfaces=new HashSet<>();
+    Set<Interface> interfaces;
 
-    @OneToMany (mappedBy = "device",fetch = FetchType.EAGER)
-    Set<Port> ports=new HashSet<>();
+    @OneToMany (mappedBy = "device",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
+    Set<Port> ports;
 
-    @OneToOne(mappedBy = "device",fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "device",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
     Ntpserver ntpserver;
 }

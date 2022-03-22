@@ -21,7 +21,7 @@ public class Interface {
     String name;
 
     @Column(name = "ip_address",nullable = false)
-    String ipAddress;
+    String ipAddress="";
 
     @Column(columnDefinition = "boolean default true")
     boolean state=true;
@@ -30,21 +30,22 @@ public class Interface {
     boolean dhcp=false;
 
     @Column
-    String netmask;
+    String netmask="255.255.255.0";
 
     @Column
-    String gateway;
+    String gateway="";
 
     @Column
-    String info;
+    String info="";
 
-    @Column
-    String port;
+    @OneToOne(fetch = FetchType.EAGER,mappedBy = "anInterface")
+    @JoinColumn(name = "port_id",referencedColumnName = "id")
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    Port port;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id",nullable = false)
     @JsonIgnore
     @EqualsAndHashCode.Exclude @ToString.Exclude
     Device device;
-
 }

@@ -1,5 +1,8 @@
 package com.example.managedevices.constant;
 
+/**
+ * Define message to show
+ */
 public class Message {
     public static final String INVALID_IP="IP IS NOT VALID";
     public static final String INVALID_NETMASK="NETMASK IS NOT VALID";
@@ -11,6 +14,7 @@ public class Message {
     public static final String NON_EXIST_CREDENTIAL="NON EXIST CREDENTIAL";
     public static final String NON_EXIST_DEVICE="NON EXIST DEVICE";
     public static final String NON_EXIST_NTPSERVER="NON EXIST NTP SERVER";
+    public static final String NON_EXIST_PORT="NON EXIST PORT";
 
     public static final String CREDENTIAL_IS_USED ="CREDENTIAL IS BEING USED";
 
@@ -23,5 +27,7 @@ public class Message {
 
     public static final String ERROR_CONNECTION="INVALID CREDENTIAL";
     public static final String HAVENT_CREATED_CONNECTION ="HAVEN'T CREATED CONNECTION TO THIS DEVICE";
+
+    public static final String EMPTY="EMPTY";
 
 }

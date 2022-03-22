@@ -16,9 +16,6 @@ public class Port {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
-    boolean status;
-
     @Column
     String connector;
 
@@ -40,6 +37,9 @@ public class Port {
     @Column(name = "mac_address",nullable = false,length = 17)
     String macAddress;
 
+    @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
+    @JsonIgnore
+    Interface anInterface;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "device_id",nullable = false)

@@ -1,5 +1,8 @@
 package com.example.managedevices.constant;
 
+/**
+ * Define ntp attribute to get data from map
+ */
 public class NtpAttribute {
     public static final String CLIENT="NTP client";
     public static final String OFFSET="TAI offset";

@@ -1,5 +1,8 @@
 package com.example.managedevices.constant;
 
+/**
+ * Define device attribute to get data from map
+ */
 public class DeviceAttribute {
     public static final String PRODUCT_NAME="Product name";
     public static final String MAC_BASE_ADDRESS="MAC base address";

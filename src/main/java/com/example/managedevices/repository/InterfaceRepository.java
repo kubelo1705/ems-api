@@ -13,5 +13,5 @@ public interface InterfaceRepository extends JpaRepository<Interface,Long> {
     void deleteAllByDevice_Id(Long id);
     boolean existsByNameAndDevice_Id(String name,Long idDevice);
     void deleteByNameAndDevice_Id(String name,Long idDevice);
-    Interface findByName(String name);
+    Interface findInterfaceByNameAndDevice_Id(String name,Long idDevice);
 }

@@ -7,43 +7,33 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("api/v1/so/credentials")
+@RequestMapping("api/v1/credentials")
 public class CredentialController {
     @Autowired
     CredentialService credentialService;
 
     @GetMapping("")
-    public ResponseEntity<?> getAllCredentials(){
-        List<Credential> list=credentialService.getAllCredentials();
-        if(list.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(list);
+    public ResponseEntity<?> getAllCredentials() {
+        return ResponseEntity.ok(credentialService.getAllCredentials());
     }
 
     @PostMapping("")
-    public ResponseEntity<?> addCredential(@Valid @RequestBody Credential credential){
-        try{
+    public ResponseEntity<?> addCredential(@RequestBody Credential credential) {
+        if (credential != null) {
             return ResponseEntity.ok(credentialService.addCredential(credential));
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } else {
+            return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<?> updateCredential(@PathVariable Optional<Long> id, @Valid @RequestBody Credential credential) {
+    public ResponseEntity<?> updateCredential(@PathVariable Optional<Long> id, @RequestBody Credential credential) {
         if (id.isPresent()) {
-            try{
-                return ResponseEntity.ok(credentialService.updateCredential(credential,id.get()));
-            }catch (Exception e){
-                return ResponseEntity.badRequest().body(e.getMessage());
-            }
-        }else {
+            return ResponseEntity.ok(credentialService.updateCredential(credential, id.get()));
+        } else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
     }
@@ -51,16 +41,12 @@ public class CredentialController {
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteCredential(@PathVariable Optional<Long> id) {
         if (id.isPresent()) {
-            try{
-                if(credentialService.deleteCredential(id.get())){
-                    return ResponseEntity.ok(Message.SUCCESSFUL);
-                }else {
-                    return ResponseEntity.notFound().build();
-                }
-            }catch (Exception e){
-                return ResponseEntity.badRequest().body(e.getMessage());
+            if (credentialService.deleteCredential(id.get())) {
+                return ResponseEntity.ok(Message.SUCCESSFUL);
+            } else {
+                return ResponseEntity.notFound().build();
             }
-        }else {
+        } else {
             return ResponseEntity.badRequest().body(Message.EMPTY_INPUT_VALUE);
         }
     }

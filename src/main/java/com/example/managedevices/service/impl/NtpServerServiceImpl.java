@@ -1,23 +1,26 @@
 package com.example.managedevices.service.impl;
 
-import com.example.managedevices.constant.BaseCommand;
+import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Ntpaddress;
 import com.example.managedevices.entity.Ntpserver;
-import com.example.managedevices.exception.EmsException;
+import com.example.managedevices.exception.BadRequestException;
+import com.example.managedevices.exception.ConflictException;
+import com.example.managedevices.exception.NotFoundException;
+import com.example.managedevices.parser.CommandParser;
 import com.example.managedevices.repository.DeviceRepository;
 import com.example.managedevices.repository.NtpAddressRepository;
 import com.example.managedevices.repository.NtpServerRepository;
 import com.example.managedevices.service.NtpServerService;
 import com.example.managedevices.utils.CommandUtils;
-import com.example.managedevices.utils.OutputUtils;
-import com.example.managedevices.vadilation.EntityValidator;
+import com.example.managedevices.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+/**
+ * solve logic related to ntp server
+ */
 @Service
 @RequiredArgsConstructor
 public class NtpServerServiceImpl implements NtpServerService {
@@ -25,41 +28,56 @@ public class NtpServerServiceImpl implements NtpServerService {
     private final NtpAddressRepository ntpAddressRepo;
     private final DeviceRepository deviceRepo;
 
-
     @Override
-    public Ntpserver getNtpserverByDeviceId(Long id) {
-        return ntpServerRepo.findNtpserverByDevice_Id(id);
+    public Ntpserver getNtpserverByDeviceId(Long idDevice) {
+        if (deviceRepo.existsById(idDevice)) {
+            if(deviceRepo.existsByCredential_IdAndConnected(idDevice,true)) {
+                Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
+                if (ntpserver != null) {
+                    return ntpserver;
+                }
+                throw new NotFoundException(Message.NON_EXIST_NTPSERVER + " WITH DEVICE ID=" + idDevice);
+            }else {
+                throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
+            }
+        }else {
+            throw new NotFoundException(Message.NON_EXIST_DEVICE);
+        }
     }
 
     @Override
     public Ntpaddress addNtpserver(Long idDevice, Ntpaddress ntpaddress) {
-        if (deviceRepo.existsByIdAndStatus(idDevice,true)) {
-            if (ntpServerRepo.existsByDevice_Id(idDevice)) {
-                if(EntityValidator.isValidIp(ntpaddress.getAddress())) {
-                    Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
-                    Device device = deviceRepo.findDeviceById(idDevice);
+        if (deviceRepo.existsById(idDevice)) {
+            if(deviceRepo.existsByCredential_IdAndConnected(idDevice,true)) {
+                if (ntpServerRepo.existsByDevice_Id(idDevice)) {
+                    if (ValidationUtils.isValidIp(ntpaddress.getAddress())) {
+                        Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
+                        Device device = deviceRepo.findDeviceById(idDevice);
 
-                    if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), ntpaddress.getAddress())) {
-                        throw new EmsException(Message.DUPLICATE_NTP);
-                    } else {
-                        String command = BaseCommand.ADD_NTP.replace("ip_address", ntpaddress.getAddress());
-                        String output=CommandUtils.execute(device,device.getCredential(),command);
-                        if(!OutputUtils.isErrorOutput(device.getSerialNumber(),command,output)){
-                            ntpaddress.setNtpserver(ntpserver);
-                            return ntpAddressRepo.save(ntpaddress);
-                        }else{
-                            throw new EmsException(OutputUtils.formatOutput(output));
+                        if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), ntpaddress.getAddress())) {
+                            throw new ConflictException(Message.DUPLICATE_NTP);
+                        } else {
+                            String command = Command.ADD_NTP.replace("ip_address", ntpaddress.getAddress());
+                            String output = CommandUtils.execute(device, device.getCredential(), command);
+                            if (!CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
+                                ntpaddress.setNtpserver(ntpserver);
+                                return ntpAddressRepo.save(ntpaddress);
+                            } else {
+                                throw new BadRequestException(CommandParser.formatOutput(output));
+                            }
                         }
+                    } else {
+                        throw new BadRequestException(Message.INVALID_IP);
                     }
-                }else {
-                    throw new EmsException(Message.INVALID_IP);
-                }
 
-            } else {
-                throw new EmsException(Message.NON_EXIST_NTPSERVER);
+                } else {
+                    throw new NotFoundException(Message.NON_EXIST_NTPSERVER);
+                }
+            }else {
+                throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
-        }else {
-            throw new EmsException(Message.NON_EXIST_DEVICE);
+        } else {
+            throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
     }
 
@@ -80,30 +98,30 @@ public class NtpServerServiceImpl implements NtpServerService {
 //    }
 
     @Override
-    public void deleteNtpserver(Long idDevice,String address) {
-        if(deviceRepo.existsById(idDevice)){
-            Device device=deviceRepo.findDeviceById(idDevice);
-            if(device.isStatus()){
-            if(ntpServerRepo.existsByDevice_Id(idDevice)) {
-                Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
-                if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), address)) {
-                    String command = BaseCommand.DELETE_NTP.replace("ip_address", address);
-                    String output = CommandUtils.execute(device, device.getCredential(), command);
-                    if (OutputUtils.isErrorOutput(device.getSerialNumber(), command, output)) {
-                        output = OutputUtils.formatOutput(output);
-                        throw new EmsException(output);
-                    } else {
-                        ntpAddressRepo.deleteByAddress(address);
+    public void deleteNtpserver(Long idDevice, String address) {
+        if (deviceRepo.existsById(idDevice)) {
+            Device device = deviceRepo.findDeviceById(idDevice);
+            if (device.isConnected()) {
+                if (ntpServerRepo.existsByDevice_Id(idDevice)) {
+                    Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
+                    if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), address)) {
+                        String command = Command.DELETE_NTP.replace("ip_address", address);
+                        String output = CommandUtils.execute(device, device.getCredential(), command);
+                        if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
+                            output = CommandParser.formatOutput(output);
+                            throw new BadRequestException(output);
+                        } else {
+                            ntpAddressRepo.deleteByAddress(address);
+                        }
                     }
+                } else {
+                    throw new NotFoundException(Message.NON_EXIST_NTPSERVER);
                 }
-            }else {
-                throw new EmsException(Message.HAVENT_CREATED_CONNECTION);
+            } else {
+                throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
-            }else{
-                throw new EmsException(Message.NON_EXIST_NTPSERVER);
-            }
-        }else {
-            throw new EmsException(Message.NON_EXIST_DEVICE);
+        } else {
+            throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
     }
 

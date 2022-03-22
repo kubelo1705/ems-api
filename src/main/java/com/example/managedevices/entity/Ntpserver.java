@@ -39,7 +39,7 @@ public class Ntpserver {
     @Column
     int numberOfMessages;
 
-    @OneToMany(mappedBy = "ntpserver",fetch = FetchType.EAGER,cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "ntpserver",fetch = FetchType.EAGER,cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
     Set<Ntpaddress> ntpaddresses;
 
     @OneToOne(fetch = FetchType.LAZY)

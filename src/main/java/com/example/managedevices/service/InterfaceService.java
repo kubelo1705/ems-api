@@ -4,14 +4,11 @@ import com.example.managedevices.entity.Interface;
 import com.example.managedevices.response.EmsResponse;
 
 import java.util.List;
+import java.util.Map;
 
 public interface InterfaceService {
-    List<Interface> getAllInterfaces();
     List<Interface> getInterfacesByDeviceId(Long id);
-    Interface addInterface(Interface interfaceAdd,Long idDevice);
-    boolean checkNetmask(Interface interfaceCheck);
-    boolean checkIpAddress(Interface interfaceCheck);
-    boolean checkValidInterface(Interface interfaceCheck);
+    Interface addInterface(Long idDevice,Map<String,Object> map);
     void deleteInterface(Long idDevice,String interfaceName);
-    Interface updateInterface(String interfaceName,Interface interfaceUpdate,Long idDevice);
+    Interface updateInterface(Long idDevice,Map<String,Object> map);
 }
