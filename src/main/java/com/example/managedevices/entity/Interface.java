@@ -39,7 +39,7 @@ public class Interface {
     String info="";
 
     @OneToOne(fetch = FetchType.EAGER,mappedBy = "anInterface")
-    @JoinColumn(name = "port_id",referencedColumnName = "id")
+    @JoinColumn(name = "port_id")
     @EqualsAndHashCode.Exclude @ToString.Exclude
     Port port;
 

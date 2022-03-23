@@ -53,15 +53,11 @@ public class DeviceController {
     @PostMapping("")
     public ResponseEntity<?> addDevice(@RequestBody Device device) {
         if (device != null) {
-            try {
-                Device deviceAdd = deviceService.addDevice(device);
-                if (deviceAdd != null) {
-                    return ResponseEntity.ok(deviceAdd);
-                } else {
-                    return ResponseEntity.accepted().build();
-                }
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body(e.getMessage());
+            Device deviceAdd = deviceService.addDevice(device);
+            if (deviceAdd != null) {
+                return ResponseEntity.ok(deviceAdd);
+            } else {
+                return ResponseEntity.accepted().build();
             }
         } else {
             return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
@@ -131,7 +127,7 @@ public class DeviceController {
             Device device = deviceService.getDeviceById(id.get());
             deviceService.resync(device);
             return ResponseEntity.ok(device);
-        }else {
+        } else {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
     }

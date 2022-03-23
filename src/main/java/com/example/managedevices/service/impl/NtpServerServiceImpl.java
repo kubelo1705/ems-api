@@ -31,7 +31,7 @@ public class NtpServerServiceImpl implements NtpServerService {
     @Override
     public Ntpserver getNtpserverByDeviceId(Long idDevice) {
         if (deviceRepo.existsById(idDevice)) {
-            if(deviceRepo.existsByCredential_IdAndConnected(idDevice,true)) {
+            if(deviceRepo.existsByIdAndConnected(idDevice,true)) {
                 Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
                 if (ntpserver != null) {
                     return ntpserver;
@@ -48,7 +48,7 @@ public class NtpServerServiceImpl implements NtpServerService {
     @Override
     public Ntpaddress addNtpserver(Long idDevice, Ntpaddress ntpaddress) {
         if (deviceRepo.existsById(idDevice)) {
-            if(deviceRepo.existsByCredential_IdAndConnected(idDevice,true)) {
+            if(deviceRepo.existsByIdAndConnected(idDevice,true)) {
                 if (ntpServerRepo.existsByDevice_Id(idDevice)) {
                     if (ValidationUtils.isValidIp(ntpaddress.getAddress())) {
                         Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);

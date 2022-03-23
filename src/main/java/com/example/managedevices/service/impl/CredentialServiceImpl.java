@@ -60,7 +60,7 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public Credential updateCredential(Credential credential, Long id) {
         if (credentialRepo.existsById(id)) {
-            if(!deviceRepo.existsByCredential_IdAndConnected(id,true)) {
+            if(!deviceRepo.existsByCredential_Id(id)) {
                 Credential credentialUpdate = credentialRepo.findCredentialById(id);
                 try {
                     credentialUpdate.setName(credential.getName());
@@ -79,14 +79,14 @@ public class CredentialServiceImpl implements CredentialService {
     }
 
     /**
-     * delete credential from database.if it is used by a device, can't delete
+     * delete credential from database. if it is used by a device, can't delete
      * @param id
      * @return
      */
     @Override
     public boolean deleteCredential(Long id) {
         if (credentialRepo.existsById(id)) {
-            if(!deviceRepo.existsByCredential_IdAndConnected(id,true)) {
+            if(!deviceRepo.existsByCredential_Id(id)) {
                 credentialRepo.deleteById(id);
                 return true;
             }else {

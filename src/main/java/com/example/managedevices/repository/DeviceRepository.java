@@ -15,8 +15,7 @@ public interface DeviceRepository extends JpaRepository<Device,Long> {
     Device findDeviceByIpAddress(String ipAddress);
     boolean existsByCredential_Id(Long id);
     void deleteDeviceById(Long id);
-    boolean existsByIdAndConnected(Long id, boolean isConnected);
-    boolean existsByCredential_IdAndConnected(Long idCredential, boolean isConnected);
+    boolean existsByIdAndConnected(Long id, boolean connected);
     boolean existsByIpAddress(String ipAddress);
 
 }

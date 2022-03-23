@@ -40,7 +40,7 @@ public class Device {
     int port=22;
 
     @Column(columnDefinition = "boolean default false")
-    boolean isConnected=false;
+    boolean connected=false;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude @ToString.Exclude

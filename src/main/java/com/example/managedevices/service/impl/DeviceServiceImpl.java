@@ -8,8 +8,8 @@ import com.example.managedevices.entity.Ntpserver;
 import com.example.managedevices.entity.Port;
 import com.example.managedevices.exception.BadRequestException;
 import com.example.managedevices.exception.ConflictException;
-import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.exception.NotFoundException;
+import com.example.managedevices.helper.CommandExecute;
 import com.example.managedevices.parser.CommandParser;
 import com.example.managedevices.repository.*;
 import com.example.managedevices.service.DeviceService;
@@ -33,7 +33,6 @@ import java.util.Set;
  */
 @Service
 @RequiredArgsConstructor
-@Transactional
 //@EnableScheduling
 public class DeviceServiceImpl implements DeviceService {
     private final DeviceRepository deviceRepo;
@@ -46,12 +45,13 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * get all devices from database
+     *
      * @return
      */
     @Override
     public List<Device> getAllDevices() {
-        List<Device> devices=deviceRepo.findAll();
-        if(devices.isEmpty()){
+        List<Device> devices = deviceRepo.findAll();
+        if (devices.isEmpty()) {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
         return devices;
@@ -59,14 +59,27 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * add new devices to database
+     *
      * @param device
      * @return
      */
     @Override
     public Device addDevice(Device device) {
         if (credentialRepo.existsById(device.getCredential().getId())) {
-            if (isValidDevice(device))
-                return deviceRepo.save(device);
+            if (isValidDevice(device)) {
+                Device deviceAdd = deviceRepo.save(device);
+                deviceAdd.setCredential(credentialRepo.findCredentialById(device.getCredential().getId()));
+//                getConfiguration(deviceAdd);
+                new Thread(() -> {
+//                    getPorts(deviceAdd);
+//                    getInterfaces(deviceAdd);
+
+                }).start();
+                new Thread(() -> {
+//                    getNtp(deviceAdd);
+                }).start();
+                return deviceAdd;
+            }
             throw new BadRequestException(Message.INVALID_DATA);
         } else {
             throw new NotFoundException(Message.NON_EXIST_CREDENTIAL);
@@ -75,6 +88,7 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * check if this device is valid. check valid address and duplicate address or not
+     *
      * @param device
      * @return
      */
@@ -94,13 +108,14 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * get device by id in database
+     *
      * @param id
      * @return
      */
     @Override
     public Device getDeviceById(Long id) {
         Device device = deviceRepo.findDeviceById(id);
-        if(device==null){
+        if (device == null) {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
         return device;
@@ -108,13 +123,14 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * get device by type in database
+     *
      * @param type
      * @return
      */
     @Override
     public List<Device> getDevicesByType(String type) {
         List<Device> devices = deviceRepo.findDeviceByType(type);
-        if(devices.isEmpty()){
+        if (devices.isEmpty()) {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
         return devices;
@@ -122,13 +138,14 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * get device by ip address in databse
+     *
      * @param ipAddress
      * @return
      */
     @Override
     public Device getDeviceByIpaddress(String ipAddress) {
         Device device = deviceRepo.findDeviceByIpAddress(ipAddress);
-        if(device==null){
+        if (device == null) {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
         return device;
@@ -145,6 +162,7 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * check if id device exist or not
+     *
      * @param id
      * @return
      */
@@ -155,9 +173,11 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * load all configuration from real device and map to device in database
+     *
      * @param device
      * @return
      */
+    @Transactional
     @Override
     public void resync(Device device) {
         interfaceRepo.deleteAllByDevice_Id(device.getId());
@@ -165,32 +185,31 @@ public class DeviceServiceImpl implements DeviceService {
         ntpRepo.deleteAllByDevice_Id(device.getId());
         ntpAddressRepo.deleteAllByNtpserver_Id(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
         try {
-                Thread configurationDevice = new Thread(() -> {
-                    if(!device.isConnected()) {
-                        System.out.println("device");
-                        getConfiguration(device);
-                        System.out.println("done device");
-                    }
-                });
+            CommandExecute commandExecute=new CommandExecute(device);
 
-            Thread portsAnInterfaces=new Thread(()->{
-                System.out.println("port and interfaces");
-                Instant start=Instant.now();
-                Set<Port> ports = getPorts(device);
-                device.setPorts(ports);
-                System.out.println("done ports:"+ Duration.between(Instant.now(),start));
-
-                Set<Interface> infs = getInterfaces(device);
-                device.setInterfaces(infs);
-                System.out.println("done interfaces:"+ Duration.between(Instant.now(),start));
+            Thread configurationDevice = new Thread(() -> {
+                if (!device.isConnected()) {
+                    System.out.println("device");
+                    getConfiguration(device,commandExecute);
+                    System.out.println("done device");
+                }
             });
 
-            Thread ntp=new Thread(()->{
+            Thread portsAnInterfaces = new Thread(() -> {
+                System.out.println("port and interfaces");
+                Instant start = Instant.now();
+                getPorts(device,commandExecute);
+                System.out.println("done ports:" + Duration.between(Instant.now(), start));
+
+                getInterfaces(device,commandExecute);
+                System.out.println("done interfaces:" + Duration.between(Instant.now(), start));
+            });
+//
+            Thread ntp = new Thread(() -> {
                 System.out.println("ntp");
-                Instant start=Instant.now();
-                Ntpserver ntpserver = getNtp(device);
-                device.setNtpserver(ntpserver);
-                System.out.println("done ntp:"+ Duration.between(Instant.now(),start));
+                Instant start = Instant.now();
+                getNtp(device,commandExecute);
+                System.out.println("done ntp:" + Duration.between(Instant.now(), start));
             });
 
             configurationDevice.start();
@@ -200,7 +219,7 @@ public class DeviceServiceImpl implements DeviceService {
             ntp.join();
             configurationDevice.join();
             portsAnInterfaces.join();
-
+            commandExecute.close();
             deviceRepo.save(device);
         } catch (Exception e) {
             device.setConnected(false);
@@ -223,6 +242,7 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * send a direct command to device and get output
+     *
      * @param idDevice
      * @param command
      * @return
@@ -240,40 +260,42 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * get interfaces from real device and map to list interface object
+     *
      * @param device
      * @return
      */
-    public Set<Interface> getInterfaces(Device device) {
-        String interfaceShowOutput = CommandUtils.execute(device, device.getCredential(), Command.INTERFACE_SHOW);
+    public void getInterfaces(Device device,CommandExecute commandExecute) {
+        String interfaceShowOutput = commandExecute.executeCommand(Command.INTERFACE_SHOW);
         Set<Interface> infs = new HashSet<>();
         if (!interfaceShowOutput.isBlank()) {
 
-            infs.addAll(CommandParser.getAllInterfacesFromCommand(interfaceShowOutput));
+            infs.addAll(CommandParser.mapConfigurationToInterfaces(interfaceShowOutput));
             infs.forEach(inf -> {
                 inf.setDevice(device);
-
-                String interfaceDetails = CommandUtils.execute(device, device.getCredential(), Command.INTERFACE_SHOW + " " + inf.getName());
+                Instant start = Instant.now();
+                String interfaceDetails = commandExecute.executeCommand(Command.INTERFACE_SHOW + " " + inf.getName());
+                System.out.println("Interface:" + Duration.between(Instant.now(), start));
                 String portName = CommandParser.getPortNameFromInterfaceDetails(interfaceDetails);
                 Port port = portRepo.findPortByPortNameAndDevice_Id(portName.trim(), device.getId());
                 inf.setPort(port);
-
                 interfaceRepo.save(inf);
             });
+            device.setInterfaces(infs);
             log.debug("MAP INTERFACES TO DEVICE:" + device.getIpAddress());
         } else {
             log.debug("EMPTY INTERFACES");
         }
-        return infs;
     }
 
     /**
      * get ports from real device and map to list interface object
+     *
      * @param device
      * @return
      */
-    public Set<Port> getPorts(Device device) {
+    public void getPorts(Device device,CommandExecute commandExecute) {
         Set<Port> ports = new HashSet<>();
-        String portConfigurations = CommandUtils.execute(device, device.getCredential(), Command.PORT_CONFIGURE);
+        String portConfigurations = commandExecute.executeCommand(Command.PORT_CONFIGURE);
         if (!portConfigurations.isBlank()) {
             ports.addAll(CommandParser.mapConfigurationToPorts(portConfigurations));
             ports.forEach(port -> {
@@ -285,19 +307,18 @@ public class DeviceServiceImpl implements DeviceService {
         } else {
             log.debug("EMPTY PORTS");
         }
-        return ports;
     }
 
     /**
      * get ntp server from real device and map to list ntp server object
+     *
      * @param device
      * @return
      */
-    public Ntpserver getNtp(Device device) {
-        Ntpserver ntpserver = new Ntpserver();
-        String ntpConfiguration = CommandUtils.execute(device, device.getCredential(), Command.NTP_CONFIGURE);
+    public void getNtp(Device device,CommandExecute commandExecute) {
+        String ntpConfiguration = commandExecute.executeCommand(Command.NTP_CONFIGURE);
         if (!ntpConfiguration.isBlank()) {
-            ntpserver = CommandParser.mapConfigurationToNtp(ntpConfiguration);
+            Ntpserver ntpserver = CommandParser.mapConfigurationToNtp(ntpConfiguration);
             ntpserver.setDevice(device);
             ntpRepo.save(ntpserver);
             ntpserver.getNtpaddresses().forEach(ntpaddress -> ntpAddressRepo.save(ntpaddress));
@@ -306,18 +327,22 @@ public class DeviceServiceImpl implements DeviceService {
         } else {
             log.debug("EMPTY NTPS");
         }
-        return ntpserver;
     }
 
     /**
      * get basic configuration to device and map to device object
+     *
      * @param device
      */
-    public void getConfiguration(Device device) {
-        String deviceConfigure = CommandUtils.execute(device, device.getCredential(), Command.BOARD_SHOW_INFO);
+    public void getConfiguration(Device device,CommandExecute commandExecute) {
+        System.out.println("Device configuration");
+        String deviceConfigure = commandExecute.executeCommand( Command.BOARD_SHOW_INFO);
+        System.out.println(deviceConfigure);
         if (!deviceConfigure.isBlank()) {
             device.setConnected(true);
             CommandParser.mapConfigurationToDevice(CommandParser.toMapDeviceConfiguration(deviceConfigure), device);
         }
+        deviceRepo.save(device);
+        System.out.println("Done device");
     }
 }

@@ -4,15 +4,19 @@ import com.example.managedevices.constant.Command;
 import com.example.managedevices.constant.Message;
 import com.example.managedevices.entity.Credential;
 import com.example.managedevices.entity.Device;
+import com.example.managedevices.exception.BadRequestException;
 import com.example.managedevices.exception.EmsException;
+import com.example.managedevices.exception.ServerException;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.channel.ClientChannel;
 import org.apache.sshd.client.channel.ClientChannelEvent;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.channel.Channel;
+import org.apache.sshd.common.channel.ChannelOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +50,14 @@ public class CommandUtils {
                     try (OutputStream pipedIn = channel.getInvertedIn()) {
                         pipedIn.write((command+"\n").getBytes());
                         pipedIn.flush();
-                        Thread.sleep(200);
+                        Thread.sleep(100);
+                        boolean isCompleted=false;
+                        while (!isCompleted){
+                            String output=new String(responseStream.toByteArray());
+                            if(output.endsWith(": ")){
+                                isCompleted=true;
+                            }
+                        }
                     }
                     channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
                             TimeUnit.SECONDS.toMillis(Command.DEFAULT_TIMEOUT));
@@ -57,7 +68,7 @@ public class CommandUtils {
                 }
             }
         }catch (Exception e){
-            throw new EmsException(Message.ERROR_CONNECTION);
+            throw new BadRequestException(e.getMessage());
         }
     }
 

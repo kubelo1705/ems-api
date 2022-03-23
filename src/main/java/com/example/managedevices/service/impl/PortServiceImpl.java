@@ -1,7 +1,6 @@
 package com.example.managedevices.service.impl;
 
 import com.example.managedevices.constant.Message;
-import com.example.managedevices.entity.Ntpserver;
 import com.example.managedevices.entity.Port;
 import com.example.managedevices.exception.BadRequestException;
 import com.example.managedevices.exception.NotFoundException;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.MissingResourceException;
 
 /**
  * solve logic related to port
@@ -26,7 +24,7 @@ public class PortServiceImpl implements PortService {
     @Override
     public List<Port> getPortByDeviceId(Long id) {
         if(deviceRepo.existsById(id)) {
-            if(deviceRepo.existsByCredential_IdAndConnected(id,true)){
+            if(deviceRepo.existsByIdAndConnected(id,true)){
                 List<Port> ports=portRepo.findPortsByDevice_Id(id);
                 if(ports.isEmpty()) {
                     return portRepo.findPortsByDevice_Id(id);

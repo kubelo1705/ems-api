@@ -48,9 +48,9 @@ public class CommandParser {
         port.setConnector(configurations[0].equals(CommonValue.EMPTY)?"":configurations[0]);
         port.setPortName(configurations[1]);
         port.setState(configurations[2].equals(CommonValue.ENABLED));
-        port.setSpeed(configurations[3]);
+        port.setSpeed(configurations[3].equals(CommonValue.EMPTY)?"":configurations[3]);
         port.setMtu(configurations[4].equals(CommonValue.EMPTY)?"":configurations[4]);
-        port.setMdi(configurations[5]);
+        port.setMdi(configurations[5].equals(CommonValue.EMPTY)?"":configurations[5]);
         port.setMacAddress(configurations[6]);
     }
 
@@ -59,7 +59,7 @@ public class CommandParser {
      * @param interfaceConfigurations
      * @return
      */
-    public static List<Interface> getAllInterfacesFromCommand(String interfaceConfigurations){
+    public static List<Interface> mapConfigurationToInterfaces(String interfaceConfigurations){
         List<Interface> interfaces=new ArrayList<>();
         String[] configurations= toArrayConfigurations(interfaceConfigurations);
 
@@ -109,14 +109,18 @@ public class CommandParser {
         ntp.setVlanPriority(Integer.parseInt(ntpMap.get(NtpAttribute.VLAN)));
 
         Set<Ntpaddress> enabledAddress=new HashSet<>();
-        Arrays.stream((ntpMap.get(NtpAttribute.ENABLED_ADDRESS)).split(" ")).forEach(address->{
-            enabledAddress.add(new Ntpaddress(address,true,ntp));
-        });
+        if(!ntpMap.get(NtpAttribute.ENABLED_ADDRESS).isBlank()) {
+            Arrays.stream((ntpMap.get(NtpAttribute.ENABLED_ADDRESS)).split(" ")).forEach(address -> {
+                enabledAddress.add(new Ntpaddress(address, true, ntp));
+            });
+        }
 
         Set<Ntpaddress> disabledAddress=new HashSet<>();
-        Arrays.stream((ntpMap.get(NtpAttribute.DISABLED_ADDRESS)).split(" ")).forEach(address->{
-            disabledAddress.add(new Ntpaddress(address,false,ntp));
-        });
+        if(!ntpMap.get(NtpAttribute.DISABLED_ADDRESS).isBlank()) {
+            Arrays.stream((ntpMap.get(NtpAttribute.DISABLED_ADDRESS)).split(" ")).forEach(address -> {
+                disabledAddress.add(new Ntpaddress(address, false, ntp));
+            });
+        }
 
         enabledAddress.addAll(disabledAddress);
         ntp.setNtpaddresses(enabledAddress);
@@ -132,7 +136,8 @@ public class CommandParser {
     public static String getPortNameFromInterfaceDetails(String configurations){
         String[] pros=configurations.split("\\n");
         for (String pro : pros) {
-            if(pro.contains("port")){
+            if(pro.contains("On port")){
+                System.out.println(pro);
                 String[] port=pro.split(":");
                 return port[1];
             }

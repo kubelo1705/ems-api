@@ -6,7 +6,6 @@ import com.example.managedevices.entity.Device;
 import com.example.managedevices.entity.Interface;
 import com.example.managedevices.entity.Port;
 import com.example.managedevices.exception.BadRequestException;
-import com.example.managedevices.exception.EmsException;
 import com.example.managedevices.exception.NotFoundException;
 import com.example.managedevices.mapper.ObjectMapper;
 import com.example.managedevices.parser.CommandParser;
@@ -15,7 +14,6 @@ import com.example.managedevices.repository.InterfaceRepository;
 import com.example.managedevices.repository.PortRepository;
 import com.example.managedevices.service.InterfaceService;
 import com.example.managedevices.utils.CommandUtils;
-import com.example.managedevices.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +35,7 @@ public class InterfaceServiceImpl implements InterfaceService {
     @Override
     public List<Interface> getInterfacesByDeviceId(Long idDevice) {
         if(deviceRepo.existsById(idDevice)) {
-            if(deviceRepo.existsByCredential_IdAndConnected(idDevice,true)) {
+            if(deviceRepo.existsByIdAndConnected(idDevice,true)) {
                 List<Interface> interfaces = interfaceRepo.findInterfaceByDevice_Id(idDevice);
                 if (interfaces.isEmpty()) {
                     throw new NotFoundException(Message.NON_EXIST_INTERFACE + " WITH DEVICE ID=" + idDevice);
