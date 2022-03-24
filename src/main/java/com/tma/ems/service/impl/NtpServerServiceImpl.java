@@ -13,7 +13,7 @@ import com.tma.ems.repository.DeviceRepository;
 import com.tma.ems.repository.NtpAddressRepository;
 import com.tma.ems.repository.NtpServerRepository;
 import com.tma.ems.service.NtpServerService;
-import com.tma.ems.utils.CommandUtils;
+import com.tma.ems.utils.SshUtils;
 import com.tma.ems.utils.ValidationUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,9 +30,12 @@ public class NtpServerServiceImpl implements NtpServerService {
 
     @Override
     public Ntpserver getNtpserverByDeviceId(Long idDevice) {
+        //check id device
         if (deviceRepo.existsById(idDevice)) {
+            //check if device is connected or not
             if(deviceRepo.existsByIdAndConnected(idDevice,true)) {
                 Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
+                //check if ntp server exist
                 if (ntpserver != null) {
                     return ntpserver;
                 }
@@ -47,18 +50,25 @@ public class NtpServerServiceImpl implements NtpServerService {
 
     @Override
     public Ntpaddress addNtpserver(Long idDevice, Ntpaddress ntpaddress) {
+        //check if id device exist
         if (deviceRepo.existsById(idDevice)) {
+            //check if device is connected
             if(deviceRepo.existsByIdAndConnected(idDevice,true)) {
+                //check if exist ntp server to this device
                 if (ntpServerRepo.existsByDevice_Id(idDevice)) {
+                    //check if ip of ntp address is valid
                     if (ValidationUtils.isValidIp(ntpaddress.getAddress())) {
+                        //get ntp server and device
                         Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
                         Device device = deviceRepo.findDeviceById(idDevice);
-
+                        // check if ipaddress is duplicated or not
                         if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), ntpaddress.getAddress())) {
                             throw new ConflictException(Message.DUPLICATE_NTP);
                         } else {
+                            //create and execute command
                             String command = Command.NTP_ADD.replace("ip_address", ntpaddress.getAddress());
-                            String output = CommandUtils.execute(device, device.getCredential(), command);
+                            String output = SshUtils.executeCommand(device, command);
+                            //check output is success or erorr
                             if (!CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                                 ntpaddress.setNtpserver(ntpserver);
                                 return ntpAddressRepo.save(ntpaddress);
@@ -99,14 +109,19 @@ public class NtpServerServiceImpl implements NtpServerService {
 
     @Override
     public void deleteNtpserver(Long idDevice, String address) {
+        //check if id device is existed
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);
             if (device.isConnected()) {
+                //check if exist ntp server of this device
                 if (ntpServerRepo.existsByDevice_Id(idDevice)) {
                     Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
+                    //check if exist address in ntp server
                     if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), address)) {
+                        //create and execute command
                         String command = Command.NTP_DELETE.replace("ip_address", address);
-                        String output = CommandUtils.execute(device, device.getCredential(), command);
+                        String output = SshUtils.executeCommand(device, command);
+                        //check output is success or error
                         if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                             output = CommandParser.formatOutput(output);
                             throw new BadRequestException(output);

@@ -1,6 +1,5 @@
 package com.tma.ems.parser;
 
-import com.tma.ems.constant.CommonValue;
 import com.tma.ems.entity.Port;
 
 import java.util.ArrayList;
@@ -10,18 +9,21 @@ import java.util.List;
  * parse data from command to port object
  */
 public class PortParser {
+    private static final String ENABLED="Enabled";
+    private static final String EMPTY="---";
+    private static final String DISABLED="Disabled";
     /**
      * map data from device to port object
      * @param configurations
      * @param port
      */
     public static void mapConfigurationToPort(String[] configurations, Port port){
-        port.setConnector(configurations[0].equals(CommonValue.EMPTY)?"":configurations[0]);
+        port.setConnector(configurations[0].equalsIgnoreCase(EMPTY)?"":configurations[0]);
         port.setPortName(configurations[1]);
-        port.setState(configurations[2].equals(CommonValue.ENABLED));
-        port.setSpeed(configurations[3].equals(CommonValue.EMPTY)?"":configurations[3]);
-        port.setMtu(configurations[4].equals(CommonValue.EMPTY)?"":configurations[4]);
-        port.setMdi(configurations[5].equals(CommonValue.EMPTY)?"":configurations[5]);
+        port.setState(configurations[2].equalsIgnoreCase(ENABLED));
+        port.setSpeed(configurations[3].equalsIgnoreCase(EMPTY)?"":configurations[3]);
+        port.setMtu(configurations[4].equalsIgnoreCase(EMPTY)?"":configurations[4]);
+        port.setMdi(configurations[5].equalsIgnoreCase(EMPTY)?"":configurations[5]);
         port.setMacAddress(configurations[6]);
     }
 

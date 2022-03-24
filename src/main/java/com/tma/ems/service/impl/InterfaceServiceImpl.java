@@ -7,13 +7,13 @@ import com.tma.ems.entity.Interface;
 import com.tma.ems.entity.Port;
 import com.tma.ems.exception.BadRequestException;
 import com.tma.ems.exception.NotFoundException;
-import com.tma.ems.mapper.ObjectMapper;
 import com.tma.ems.parser.CommandParser;
+import com.tma.ems.parser.InterfaceParser;
 import com.tma.ems.repository.DeviceRepository;
 import com.tma.ems.repository.InterfaceRepository;
 import com.tma.ems.repository.PortRepository;
 import com.tma.ems.service.InterfaceService;
-import com.tma.ems.utils.CommandUtils;
+import com.tma.ems.utils.SshUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,18 +53,15 @@ public class InterfaceServiceImpl implements InterfaceService {
     public Interface addInterface(Long idDevice, Map<String, Object> map) {
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);
-            String command = CommandUtils.toInterfaceCommand(Command.INTERFACE_ADD, map);
+            String command = InterfaceParser.parseMapToCommand(Command.INTERFACE_ADD, map);
             if(device.isConnected()) {
-                String output = CommandUtils.execute(device, device.getCredential(), command);
+                String output = SshUtils.executeCommand(device, command);
 
                 if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                     throw new BadRequestException(CommandParser.formatOutput(output));
                 } else {
-                    Interface inf = ObjectMapper.mapToInterface(map);
-
                     Port port = portRepo.findPortByPortNameAndDevice_Id(map.get("port_name").toString(), device.getId());
-                    inf.setPort(port);
-                    inf.setDevice(device);
+                    Interface inf=create(map,port,device);
                     return interfaceRepo.save(inf);
                 }
             }else {
@@ -95,7 +92,7 @@ public class InterfaceServiceImpl implements InterfaceService {
             if(device.isConnected()) {
                 if (interfaceRepo.existsByNameAndDevice_Id(interfaceName, idDevice)) {
                     String command = Command.INTERFACE_DELETE.replace("interface_name", interfaceName);
-                    String output = (CommandUtils.execute(device, device.getCredential(), command));
+                    String output = (SshUtils.executeCommand(device, command));
                     if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                         output = CommandParser.formatOutput(output);
                         throw new BadRequestException(output);
@@ -117,31 +114,22 @@ public class InterfaceServiceImpl implements InterfaceService {
     public Interface updateInterface(Long idDevice, Map<String, Object> map) {
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);
+
             if(device.isConnected()) {
                 if (interfaceRepo.existsByNameAndDevice_Id(map.get("interface_name").toString(), idDevice)) {
-                    String command = CommandUtils.toInterfaceCommand(Command.INTERFACE_EDIT, map);
-                    System.out.println(command);
-                    String output = CommandUtils.execute(device, device.getCredential(), command);
+
+                    String command = InterfaceParser.parseMapToCommand(Command.INTERFACE_EDIT, map);
+                    String output = SshUtils.executeCommand(device, command);
+
                     if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                         throw new BadRequestException(CommandParser.formatOutput(output));
                     } else {
                         Interface inf = interfaceRepo.findInterfaceByNameAndDevice_Id(map.get("interface_name").toString(), idDevice);
-                        if (map.get("new_name") != null) {
-                            inf.setName(map.get("new_name").toString());
-                        }
-                        if (map.get("port_name") != null) {
-                            Port port = portRepo.findPortByPortNameAndDevice_Id(map.get("port_name").toString(), idDevice);
-                            inf.setPort(port);
-                        }
-                        if (map.get("ip_address") != null) {
-                            inf.setIpAddress(map.get("ip_address").toString());
-                        }
-                        if (map.get("netmask") != null) {
-                            inf.setNetmask(map.get("netmask").toString());
-                        }
-                        if (map.get("interface_state") != null) {
-                            inf.setState(map.get("interface_state").toString().equalsIgnoreCase("enable"));
-                        }
+                        Port port=portRepo.findPortByPortNameAndDevice_Id(map.get("port_name").toString(),idDevice);
+
+                        InterfaceParser.parseMapToInterface(map,inf);
+                        inf.setPort(port);
+
                         return interfaceRepo.save(inf);
                     }
                 } else {
@@ -153,5 +141,14 @@ public class InterfaceServiceImpl implements InterfaceService {
         } else {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
+    }
+
+    @Override
+    public Interface create(Map<String, Object> map, Port port, Device device) {
+        Interface inf=new Interface();
+        InterfaceParser.parseMapToInterface(map,inf);
+        inf.setPort(port);
+        inf.setDevice(device);
+        return inf;
     }
 }

@@ -24,6 +24,7 @@ public class PortServiceImpl implements PortService {
     @Override
     public List<Port> getPortByDeviceId(Long id) {
         if(deviceRepo.existsById(id)) {
+            //check if device is connected
             if(deviceRepo.existsByIdAndConnected(id,true)){
                 List<Port> ports=portRepo.findPortsByDevice_Id(id);
                 if(ports.isEmpty()) {

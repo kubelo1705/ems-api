@@ -4,7 +4,6 @@ package com.tma.ems.parser;
  * Parse data from command
  */
 public class CommandParser {
-
      /**
      * format output of command. only get main data
      * @param output

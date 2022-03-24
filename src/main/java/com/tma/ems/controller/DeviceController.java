@@ -5,7 +5,7 @@ import com.tma.ems.constant.Message;
 import com.tma.ems.entity.Device;
 import com.tma.ems.exception.NotFoundException;
 import com.tma.ems.service.DeviceService;
-import com.tma.ems.utils.CommandUtils;
+import com.tma.ems.utils.SshUtils;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -107,7 +107,7 @@ public class DeviceController {
         Device device = deviceService.getDeviceById(id.get());
         if (device != null) {
             try {
-                CommandUtils.execute(device, device.getCredential(), Command.CONFIGURATION_EXPORT);
+                SshUtils.executeCommand(device, Command.CONFIGURATION_EXPORT);
                 File file = ResourceUtils.getFile(Command.FILE_PATH);
                 byte[] data = FileUtils.readFileToByteArray(file);
                 InputStream inputStream = new BufferedInputStream(new ByteArrayInputStream(data));

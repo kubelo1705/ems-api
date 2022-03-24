@@ -6,6 +6,9 @@ import com.tma.ems.entity.Credential;
  * validate data input
  */
 public class ValidationUtils {
+    /**
+     * valid ipv4
+     */
     public static boolean isValidIp(String ip){
         String[] subIps=ip.split("\\.");
         try{
@@ -21,6 +24,9 @@ public class ValidationUtils {
         }
     }
 
+    /**
+     * valid subnet mask ip
+     */
     public static boolean isValidNetmask(String netmask){
         String[] subIps=netmask.split("\\.");
         try{
@@ -35,6 +41,10 @@ public class ValidationUtils {
             return false;
         }
     }
+
+    /**
+     * valid credential
+     */
     public static boolean isValidCredential(Credential credential){
         String name=credential.getName();
         String username= credential.getUsername();

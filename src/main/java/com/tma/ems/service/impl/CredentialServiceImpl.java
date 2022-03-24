@@ -23,10 +23,6 @@ public class CredentialServiceImpl implements CredentialService {
     private final CredentialRepository credentialRepo;
     private final DeviceRepository deviceRepo;
 
-    /**
-     * get all credentials from database
-     * @return
-     */
     @Override
     public List<Credential> getAllCredentials() {
         List<Credential> credentials=credentialRepo.findAll();
@@ -36,11 +32,6 @@ public class CredentialServiceImpl implements CredentialService {
         return credentials;
     }
 
-    /**
-     * add credential to database
-     * @param credential
-     * @return
-     */
     @Override
     public Credential addCredential(Credential credential) {
         if(ValidationUtils.isValidCredential(credential)){
@@ -53,20 +44,18 @@ public class CredentialServiceImpl implements CredentialService {
 
     /**
      * update credential to database
-     * @param credential
+     * @param newCredential
      * @param id
      * @return
      */
     @Override
-    public Credential updateCredential(Credential credential, Long id) {
+    public Credential updateCredential(Credential newCredential, Long id) {
         if (credentialRepo.existsById(id)) {
             if(!deviceRepo.existsByCredential_Id(id)) {
-                Credential credentialUpdate = credentialRepo.findCredentialById(id);
+                Credential credential = credentialRepo.findCredentialById(id);
                 try {
-                    credentialUpdate.setName(credential.getName());
-                    credentialUpdate.setUsername(credential.getUsername());
-                    credentialUpdate.setPassword(credential.getPassword());
-                    return credentialRepo.save(credentialUpdate);
+                    mapNewCredentialToCredential(newCredential,credential);
+                    return credentialRepo.save(credential);
                 }catch (Exception e){
                     throw new BadRequestException(Message.INVALID_DATA);
                 }
@@ -78,11 +67,7 @@ public class CredentialServiceImpl implements CredentialService {
         }
     }
 
-    /**
-     * delete credential from database. if it is used by a device, can't delete
-     * @param id
-     * @return
-     */
+
     @Override
     public boolean deleteCredential(Long id) {
         if (credentialRepo.existsById(id)) {
@@ -94,6 +79,19 @@ public class CredentialServiceImpl implements CredentialService {
             }
         }else {
             return false;
+        }
+    }
+
+    @Override
+    public void mapNewCredentialToCredential(Credential newCredential, Credential credential) {
+        if(newCredential.getName()!=null) {
+            credential.setName(newCredential.getName());
+        }
+        if(newCredential.getUsername()!=null) {
+            credential.setUsername(newCredential.getUsername());
+        }
+        if(newCredential.getPassword()!=null) {
+            credential.setPassword(newCredential.getPassword());
         }
     }
 }

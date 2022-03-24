@@ -9,12 +9,9 @@ import com.tma.ems.entity.Port;
 import com.tma.ems.exception.BadRequestException;
 import com.tma.ems.exception.ConflictException;
 import com.tma.ems.exception.NotFoundException;
-import com.tma.ems.helper.CommandExecute;
-import com.example.managedevices.parser.*;
-import com.example.managedevices.repository.*;
 import com.tma.ems.parser.*;
 import com.tma.ems.service.DeviceService;
-import com.tma.ems.utils.CommandUtils;
+import com.tma.ems.utils.SshUtils;
 import com.tma.ems.utils.ValidationUtils;
 import com.tma.ems.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -45,9 +42,6 @@ public class DeviceServiceImpl implements DeviceService {
     private final CredentialRepository credentialRepo;
     private static final Logger log = LogManager.getLogger(DeviceServiceImpl.class);
 
-    /**
-     * get all devices from database
-     */
     @Override
     public List<Device> getAllDevices() {
         List<Device> devices = deviceRepo.findAll();
@@ -57,23 +51,20 @@ public class DeviceServiceImpl implements DeviceService {
         return devices;
     }
 
-    /**
-     * add new devices to database
-     */
     @Override
     public Device addDevice(Device device) {
         if (credentialRepo.existsById(device.getCredential().getId())) {
             if (isValidDevice(device)) {
                 Device deviceAdd = deviceRepo.save(device);
                 deviceAdd.setCredential(credentialRepo.findCredentialById(device.getCredential().getId()));
-//                getConfiguration(deviceAdd);
+                //load configuration of device after save
+                getConfiguration(deviceAdd);
                 new Thread(() -> {
-//                    getPorts(deviceAdd);
-//                    getInterfaces(deviceAdd);
-
+                    getPorts(deviceAdd);
+                    getInterfaces(deviceAdd);
                 }).start();
                 new Thread(() -> {
-//                    getNtp(deviceAdd);
+                    getNtp(deviceAdd);
                 }).start();
                 return deviceAdd;
             }
@@ -83,9 +74,6 @@ public class DeviceServiceImpl implements DeviceService {
         }
     }
 
-    /**
-     * check if this device is valid. check valid address and duplicate address or not
-     */
     @Override
     public boolean isValidDevice(Device device) {
         if (device.getIpAddress() != null) {
@@ -100,9 +88,6 @@ public class DeviceServiceImpl implements DeviceService {
         throw new BadRequestException(Message.INVALID_DATA);
     }
 
-    /**
-     * get device by id in database
-     */
     @Override
     public Device getDeviceById(Long id) {
         Device device = deviceRepo.findDeviceById(id);
@@ -112,10 +97,6 @@ public class DeviceServiceImpl implements DeviceService {
         return device;
     }
 
-    /**
-     * get device by type in database
-     *
-     */
     @Override
     public List<Device> getDevicesByType(String type) {
         List<Device> devices = deviceRepo.findDeviceByType(type);
@@ -125,9 +106,6 @@ public class DeviceServiceImpl implements DeviceService {
         return devices;
     }
 
-    /**
-     * get device by ip address in databse
-     */
     @Override
     public Device getDeviceByIpaddress(String ipAddress) {
         Device device = deviceRepo.findDeviceByIpAddress(ipAddress);
@@ -146,55 +124,51 @@ public class DeviceServiceImpl implements DeviceService {
         }
     }
 
-    /**
-     * check if id device exist or not
-     */
     @Override
     public boolean isValidId(Long id) {
         return deviceRepo.existsById(id);
     }
 
-    /**
-     * load all configuration from real device and map to device in database
-
-     */
-    @Transactional
     @Override
-    public void resync(Device device) {
+    public void cleanUpData(Device device) {
         interfaceRepo.deleteAllByDevice_Id(device.getId());
         portRepo.deleteAllByDevice_Id(device.getId());
         ntpRepo.deleteAllByDevice_Id(device.getId());
         ntpAddressRepo.deleteAllByNtpserver_Id(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
+    }
 
-        CommandExecute commandExecute = new CommandExecute(device);
-
+    @Transactional
+    @Override
+    public void resync(Device device) {
+        cleanUpData(device);
         try {
+            //get device configuration and save to device if it isnot connected
             if (!device.isConnected()) {
-                getConfiguration(device, commandExecute);
+                System.out.println("device");
+                device.setConnected(true);
+                getConfiguration(device);
+                System.out.println("done device");
             }
-
+            //get ports and save to device
             System.out.println("ports and interfaces");
-            getPorts(device, commandExecute);
+            getPorts(device);
             System.out.println("done ports");
-
-            getInterfaces(device, commandExecute);
-
+            //get interface and save to device
+            getInterfaces(device);
+            System.out.println("done interfaces");
+            //get ntp server and save to device
             System.out.println("ntp");
-            getNtp(device, commandExecute);
+            getNtp(device);
+            System.out.println("done ntp");
 
             deviceRepo.save(device);
         } catch (Exception e) {
             device.setConnected(false);
             deviceRepo.save(device);
             log.error(e.getMessage());
-        }finally {
-            commandExecute.close();
         }
     }
 
-    /**
-     * auto resync device every 15s
-     */
     @Override
     @Scheduled(fixedDelay = 15000)
     public void autoResync() {
@@ -203,7 +177,6 @@ public class DeviceServiceImpl implements DeviceService {
 
     /**
      * send a direct command to device and get output
-     *
      * @param idDevice
      * @param command
      * @return
@@ -214,16 +187,16 @@ public class DeviceServiceImpl implements DeviceService {
         if (device == null) {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         } else {
-            String output = CommandUtils.execute(device, device.getCredential(), command);
+            String output = SshUtils.executeCommand(device, command);
             return CommandParser.formatOutput(output);
         }
     }
 
     /**
-     * get interfaces from real device and map to list interface object
+     * get interfaces from device and map to list interface object
      */
-    public void getInterfaces(Device device, CommandExecute commandExecute) {
-        String interfaceShowOutput = commandExecute.executeCommand(Command.INTERFACE_SHOW);
+    public void getInterfaces(Device device) {
+        String interfaceShowOutput = SshUtils.executeCommand(device,Command.INTERFACE_SHOW);
         Set<Interface> infs = new HashSet<>();
         if (!interfaceShowOutput.isBlank()) {
 
@@ -231,8 +204,10 @@ public class DeviceServiceImpl implements DeviceService {
             infs.forEach(inf -> {
                 inf.setDevice(device);
                 Instant start = Instant.now();
-                String interfaceDetails = commandExecute.executeCommand(Command.INTERFACE_SHOW + " " + inf.getName());
+                //create command and execute to get interface details
+                String interfaceDetails = SshUtils.executeCommand(device,Command.INTERFACE_SHOW + " " + inf.getName());
                 System.out.println("Interface:" + Duration.between(Instant.now(), start));
+                //get port name from interface details and save to interface
                 String portName = InterfaceParser.getPortNameFromOutputCommand(interfaceDetails);
                 Port port = portRepo.findPortByPortNameAndDevice_Id(portName.trim(), device.getId());
                 inf.setPort(port);
@@ -246,11 +221,11 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     /**
-     * get ports from real device and map to list interface object
+     * get ports from device and map to list interface object
      */
-    public void getPorts(Device device, CommandExecute commandExecute) {
+    public void getPorts(Device device) {
         Set<Port> ports = new HashSet<>();
-        String portConfigurations = commandExecute.executeCommand(Command.PORT_SHOW_CONFIGURATION);
+        String portConfigurations = SshUtils.executeCommand(device,Command.PORT_SHOW_CONFIGURATION);
         if (!portConfigurations.isBlank()) {
             ports.addAll(PortParser.convertOutputCommandToPorts(portConfigurations));
             ports.forEach(port -> {
@@ -265,13 +240,12 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     /**
-     * get ntp server from real device and map to list ntp server object
-     *
+     * get ntp server from device and map to list ntp server object
      * @param device
      * @return
      */
-    public void getNtp(Device device, CommandExecute commandExecute) {
-        String ntpConfiguration = commandExecute.executeCommand(Command.NTP_SHOW);
+    public void getNtp(Device device) {
+        String ntpConfiguration = SshUtils.executeCommand(device,Command.NTP_SHOW);
         if (!ntpConfiguration.isBlank()) {
             Ntpserver ntpserver = NtpParser.convertOutputCommandToNtp(ntpConfiguration);
             ntpserver.setDevice(device);
@@ -287,14 +261,11 @@ public class DeviceServiceImpl implements DeviceService {
     /**
      * get basic configuration to device and map to device object
      */
-    public void getConfiguration(Device device, CommandExecute commandExecute) {
-        String deviceConfiguration = commandExecute.executeCommand(Command.BOARD_SHOW_INFO);
-        System.out.println(deviceConfiguration);
+    public void getConfiguration(Device device) {
+        String deviceConfiguration = SshUtils.executeCommand(device,Command.BOARD_SHOW_INFO);
         if (!deviceConfiguration.isBlank()) {
-            device.setConnected(true);
             DeviceParser.mapOutputCommandToDevice(deviceConfiguration,device);
         }
         deviceRepo.save(device);
-        System.out.println("Done device");
     }
 }

@@ -1,6 +1,5 @@
 package com.tma.ems.parser;
 
-import com.tma.ems.constant.CommonValue;
 import com.tma.ems.entity.Ntpaddress;
 import com.tma.ems.entity.Ntpserver;
 
@@ -20,6 +19,7 @@ public class NtpParser {
     private static final String ENABLED_ADDRESS = "Enabled server list";
     private static final String DISABLED_ADDRESS = "Disabled server list";
     private static final String END = "Current date";
+    private static final String ENABLED="Enabled";
 
     /**
      * from data to map data ntp configuration
@@ -109,7 +109,7 @@ public class NtpParser {
     public static Ntpserver mapConfigurationToNtpserver(Map<String, String> configurations) {
         Ntpserver ntp = new Ntpserver();
 
-        ntp.setClient(configurations.get(CLIENT).equals(CommonValue.ENABLED));
+        ntp.setClient(configurations.get(CLIENT).equalsIgnoreCase(ENABLED));
         ntp.setDscp(Integer.parseInt(configurations.get(DSCP)));
         ntp.setNumberOfMessages(Integer.parseInt(configurations.get(NUMBER_OF_MESSAGES)));
         ntp.setOffset(Integer.parseInt(configurations.get(OFFSET)));
