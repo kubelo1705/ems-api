@@ -64,12 +64,12 @@ public interface DeviceService {
      * reload all configuration of device
      * @param device
      */
-    void resync(Device device);
+    void reload(Device device);
 
     /**
      * auto reload configuration of device every 15s
      */
-    @Scheduled(fixedDelay = 15000) void autoResync();
+    @Scheduled(fixedDelay = 15000) void autoReload();
 
     /**
      * send a command directly to a managed device

@@ -125,7 +125,7 @@ public class DeviceController {
     public ResponseEntity reloadDevice(@PathVariable Optional<Long> id) {
         if (id.isPresent()) {
             Device device = deviceService.getDeviceById(id.get());
-            deviceService.resync(device);
+            deviceService.reload(device);
             return ResponseEntity.ok(device);
         } else {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);

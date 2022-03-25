@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class SshUtils {
     private static final String EXPECTED_END_CHARACTER = ": ";
     private static final int DEFAULT_TIMEOUT = 1000;
+    private static String serial="";
 
     /**
      * create shell to execute command
@@ -70,6 +71,9 @@ public class SshUtils {
         Credential credential=device.getCredential();
         String username = credential.getUsername();
         String password = credential.getPassword();
+        if(device.getSerialNumber()!=null && serial!= device.getSerialNumber()){
+            serial=device.getSerialNumber();
+        }
 
         String host = device.getIpAddress();
         int port = device.getPort();
@@ -114,7 +118,7 @@ public class SshUtils {
         boolean isCompleted=false;
         while (!isCompleted) {
             String output = responseStream.toString();
-            if (output.endsWith(EXPECTED_END_CHARACTER)) {
+            if (output.endsWith(serial+EXPECTED_END_CHARACTER)) {
                 isCompleted = true;
             }
         }

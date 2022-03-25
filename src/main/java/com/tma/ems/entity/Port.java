@@ -37,7 +37,7 @@ public class Port {
     @Column(name = "mac_address",nullable = false,length = 17)
     String macAddress;
 
-    @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE,mappedBy = "port")
     @JsonIgnore
     Interface anInterface;
 
