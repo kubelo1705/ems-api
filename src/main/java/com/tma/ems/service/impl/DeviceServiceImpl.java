@@ -46,9 +46,6 @@ public class DeviceServiceImpl implements DeviceService {
     @Override
     public List<Device> getAllDevices() {
         List<Device> devices = deviceRepo.findAll();
-        if (devices.isEmpty()) {
-            throw new NotFoundException(Message.NON_EXIST_DEVICE);
-        }
         return devices;
     }
 
@@ -91,11 +88,8 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Device getDeviceById(Long id) {
-        Device device = deviceRepo.findDeviceById(id);
-        if (device == null) {
-            throw new NotFoundException(Message.NON_EXIST_DEVICE);
-        }
-        return device;
+        return deviceRepo.findById(id)
+                .orElseThrow(()-> new NotFoundException(Message.NON_EXIST_DEVICE+" ID="+id));
     }
 
     @Override
@@ -109,11 +103,8 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Device getDeviceByIpaddress(String ipAddress) {
-        Device device = deviceRepo.findDeviceByIpAddress(ipAddress);
-        if (device == null) {
-            throw new NotFoundException(Message.NON_EXIST_DEVICE);
-        }
-        return device;
+        return deviceRepo.findByIpAddress(ipAddress)
+                .orElseThrow(()-> new NotFoundException(Message.NON_EXIST_DEVICE+" ipaddress="+ipAddress));
     }
 
     @Override
@@ -121,7 +112,7 @@ public class DeviceServiceImpl implements DeviceService {
         if (isValidId(id)) {
             deviceRepo.deleteDeviceById(id);
         } else {
-            throw new NotFoundException(Message.NON_EXIST_DEVICE);
+            throw new NotFoundException(Message.NON_EXIST_DEVICE+" ID="+id);
         }
     }
 

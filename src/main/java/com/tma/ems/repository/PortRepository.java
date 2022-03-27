@@ -11,4 +11,5 @@ public interface PortRepository extends JpaRepository<Port,Long> {
     void deleteAllByDevice_Id(Long id);
     List<Port> findPortsByDevice_Id(Long id);
     Port findPortByPortNameAndDevice_Id(String name,Long id);
+
 }

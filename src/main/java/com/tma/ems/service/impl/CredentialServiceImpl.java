@@ -26,9 +26,6 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public List<Credential> getAllCredentials() {
         List<Credential> credentials=credentialRepo.findAll();
-        if(credentials.isEmpty()){
-            throw new NotFoundException(Message.NON_EXIST_CREDENTIAL);
-        }
         return credentials;
     }
 
@@ -42,12 +39,7 @@ public class CredentialServiceImpl implements CredentialService {
         }
     }
 
-    /**
-     * update credential to database
-     * @param newCredential
-     * @param id
-     * @return
-     */
+
     @Override
     public Credential updateCredential(Credential newCredential, Long id) {
         if (credentialRepo.existsById(id)) {

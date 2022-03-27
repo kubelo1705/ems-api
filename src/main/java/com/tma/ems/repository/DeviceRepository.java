@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @Transactional
@@ -17,5 +18,8 @@ public interface DeviceRepository extends JpaRepository<Device,Long> {
     void deleteDeviceById(Long id);
     boolean existsByIdAndConnected(Long id, boolean connected);
     boolean existsByIpAddress(String ipAddress);
+    Optional<Device> findByType(String type);
+    Optional<Device> findByIpAddress(String ipAddress);
+
 
 }
