@@ -32,7 +32,10 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public Credential addCredential(Credential credential) {
         if(ValidationUtils.isValidCredential(credential)){
-            return credentialRepo.save(credential);
+            if(!credentialRepo.existsByName(credential.getName()))
+                return credentialRepo.save(credential);
+            else
+                throw new BadRequestException(Message.DUPLICATE_CREDENTIAL);
         }
         else{
             throw new BadRequestException(Message.INVALID_DATA);

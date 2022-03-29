@@ -35,9 +35,11 @@ public class Interface {
     @Column
     String info="";
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "port_id")
-    @EqualsAndHashCode.Exclude @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
     Port port;
 
     @ManyToOne(fetch = FetchType.LAZY)

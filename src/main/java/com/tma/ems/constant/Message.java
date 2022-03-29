@@ -6,9 +6,11 @@ package com.tma.ems.constant;
 public class Message {
     public static final String INVALID_IP="IP IS NOT VALID";
     public static final String INVALID_NETMASK="NETMASK IS NOT VALID";
+
     public static final String DUPLICATE_ID ="DUPLICATE ID";
     public static final String DUPLICATE_NTP="DUPLICATE NTP";
-    public static final String DUPLICATE_DEVICE="DUPLECATE DEVICE";
+    public static final String DUPLICATE_DEVICE="DUPLICATE DEVICE";
+    public static final String DUPLICATE_CREDENTIAL="DUPLICATE CREDENTIAL";
 
     public static final String NON_EXIST_INTERFACE="NON EXIST INTERFACE";
     public static final String NON_EXIST_CREDENTIAL="NON EXIST CREDENTIAL";

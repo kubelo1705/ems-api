@@ -53,17 +53,13 @@ public class DeviceServiceImpl implements DeviceService {
     public Device addDevice(Device device) {
         if (credentialRepo.existsById(device.getCredential().getId())) {
             if (isValidDevice(device)) {
+                device.setInProgress(true);
                 Device deviceAdd = deviceRepo.save(device);
                 deviceAdd.setCredential(credentialRepo.findCredentialById(device.getCredential().getId()));
-                //load all configuration of device after save
-                getConfiguration(deviceAdd);
-                new Thread(() -> {
-                    getPorts(deviceAdd);
-                    getInterfaces(deviceAdd);
+                new Thread(()->{
+                    reload(deviceAdd);
                 }).start();
-                new Thread(() -> {
-                    getNtp(deviceAdd);
-                }).start();
+
                 return deviceAdd;
             }
             throw new BadRequestException(Message.INVALID_DATA);
@@ -121,6 +117,7 @@ public class DeviceServiceImpl implements DeviceService {
         return deviceRepo.existsById(id);
     }
 
+    @Transactional
     @Override
     public void cleanUpData(Device device) {
         interfaceRepo.deleteAllByDevice_Id(device.getId());
@@ -129,21 +126,25 @@ public class DeviceServiceImpl implements DeviceService {
         ntpAddressRepo.deleteAllByNtpserver_Id(device.getNtpserver() == null ? 0L : device.getNtpserver().getId());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     @Override
     public void reload(Device device) {
         cleanUpData(device);
         try {
             //get device configuration and save to device if it is not connected
-            Thread deviceThread= createDeviceThread(device);
+            //Thread deviceThread= createDeviceThread(device);
+            getConfiguration(device);
             //get ports and interface save to device
-            Thread interfaceAndPortThread= createPortAndInterfaceThread(device);
+            //Thread interfaceAndPortThread= createPortAndInterfaceThread(device);
+            getPorts(device);
+            getInterfaces(device);
             //get ntp server and save to device
-            Thread ntpThread= createNtpThread(device);
-
-            start(deviceThread,ntpThread,interfaceAndPortThread);
-            wait(deviceThread,ntpThread,interfaceAndPortThread);
-
+            //Thread ntpThread= createNtpThread(device);
+            getNtp(device);
+//            start(deviceThread,ntpThread,interfaceAndPortThread);
+//            wait(deviceThread,ntpThread,interfaceAndPortThread);
+            device.setConnected(true);
+            device.setInProgress(false);
             deviceRepo.save(device);
         } catch (Exception e) {
             device.setConnected(false);
@@ -172,6 +173,7 @@ public class DeviceServiceImpl implements DeviceService {
     /**
      * get interfaces from device and map to list interface object
      */
+    @Transactional
     public void getInterfaces(Device device) {
         try {
             String interfaceConfigurations = SshUtils.executeCommand(device, Command.INTERFACE_SHOW);
@@ -194,7 +196,7 @@ public class DeviceServiceImpl implements DeviceService {
                         port.setAnInterface(inf);
                         portRepo.save(port);
                     }else {
-                        interfaceRepo.save(inf);
+                        infs.remove(inf);
                     }
 
                 });
@@ -211,6 +213,7 @@ public class DeviceServiceImpl implements DeviceService {
     /**
      * get ports from device and map to list interface object
      */
+    @Transactional
     public void getPorts(Device device) {
         try {
             Set<Port> ports = new HashSet<>();
@@ -236,7 +239,9 @@ public class DeviceServiceImpl implements DeviceService {
      * @param device
      * @return
      */
+    @Transactional
     public void getNtp(Device device) {
+        System.out.println("ntp");
         try {
             String ntpConfiguration = SshUtils.executeCommand(device, Command.NTP_SHOW);
             if (!ntpConfiguration.isBlank()) {
@@ -249,6 +254,7 @@ public class DeviceServiceImpl implements DeviceService {
             } else {
                 log.debug("EMPTY NTPS");
             }
+            System.out.println("end ntp");
         }catch (Exception e){
             log.error(e.getMessage()+":ntp");
         }
@@ -257,6 +263,7 @@ public class DeviceServiceImpl implements DeviceService {
     /**
      * get basic configuration to device and map to device object
      */
+    @Transactional
     public void getConfiguration(Device device) {
         try {
             String deviceConfiguration = SshUtils.executeCommand(device, Command.BOARD_SHOW_INFO);
@@ -264,7 +271,6 @@ public class DeviceServiceImpl implements DeviceService {
             if (!deviceConfiguration.isBlank()) {
                 DeviceParser.mapOutputCommandToDevice(deviceConfiguration, device);
             }
-            deviceRepo.save(device);
         }catch (Exception e){
             log.error(e.getMessage()+":device");
         }

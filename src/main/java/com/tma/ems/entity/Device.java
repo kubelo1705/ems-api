@@ -41,6 +41,9 @@ public class Device {
     @Column(columnDefinition = "boolean default false")
     boolean connected=false;
 
+    @Column(name = "in_progress",columnDefinition = "boolean default false")
+    boolean inProgress;
+
     @ManyToOne
     @EqualsAndHashCode.Exclude @ToString.Exclude
     @JoinColumn(name = "credential_id",nullable = false)

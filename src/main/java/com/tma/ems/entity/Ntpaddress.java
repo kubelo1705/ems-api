@@ -28,10 +28,9 @@ public class Ntpaddress {
     @JsonIgnore
     Ntpserver ntpserver;
 
-    public Ntpaddress(String address, boolean status, Ntpserver ntpservers) {
+    public Ntpaddress(String address, boolean status) {
         this.address = address;
         this.status = status;
-        this.ntpserver = ntpservers;
     }
 
     public Ntpaddress(String address) {
