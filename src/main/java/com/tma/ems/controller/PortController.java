@@ -16,13 +16,13 @@ import java.util.Optional;
 public class PortController {
     @Autowired
     PortService portService;
-    
+
     @GetMapping("/device/{id}")
-    public ResponseEntity<?> getPortsByDeviceId(@PathVariable Optional<Long> id){
-        if(id.isPresent()){
+    public ResponseEntity<?> getPortsByDeviceId(@PathVariable Optional<Long> id) {
+        if (id.isPresent()) {
             return ResponseEntity.ok(portService.getPortByDeviceId(id.get()));
-        }else {
-            return  ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
+        } else {
+            return ResponseEntity.badRequest().body(Message.INVALID_REQUEST);
         }
     }
 }

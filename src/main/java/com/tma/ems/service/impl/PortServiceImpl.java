@@ -23,19 +23,19 @@ public class PortServiceImpl implements PortService {
 
     @Override
     public List<Port> getPortByDeviceId(Long id) {
-        if(deviceRepo.existsById(id)) {
+        if (deviceRepo.existsById(id)) {
             //check if device is connected
-            if(deviceRepo.existsByIdAndConnected(id,true)){
-                List<Port> ports=portRepo.findPortsByDevice_Id(id);
-                if(ports.isEmpty()) {
+            if (deviceRepo.existsByIdAndConnected(id, true)) {
+                List<Port> ports = portRepo.findPortsByDevice_Id(id);
+                if (ports.isEmpty()) {
                     return portRepo.findPortsByDevice_Id(id);
-                }else {
+                } else {
                     throw new NotFoundException(Message.NON_EXIST_PORT);
                 }
-            }else {
+            } else {
                 throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
-        }else {
+        } else {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
     }

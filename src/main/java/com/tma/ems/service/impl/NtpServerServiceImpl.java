@@ -31,9 +31,9 @@ public class NtpServerServiceImpl implements NtpServerService {
     @Override
     public Ntpserver getNtpserverByDeviceId(Long idDevice) {
         //check id device
-        if(existNtpServerWithDevice(idDevice)){
+        if (existNtpServerWithDevice(idDevice)) {
             return ntpServerRepo.findNtpserverByDevice_Id(idDevice);
-        }else {
+        } else {
             throw new NotFoundException(Message.NON_EXIST_NTPSERVER);
         }
     }
@@ -65,15 +65,15 @@ public class NtpServerServiceImpl implements NtpServerService {
                 throw new BadRequestException(Message.INVALID_IP);
             }
 
-        }else {
+        } else {
             throw new NotFoundException(Message.NON_EXIST_NTPSERVER);
         }
     }
 
     @Override
     public void deleteNtpserver(Long idDevice, String address) {
-        if(existNtpServerWithDevice(idDevice)) {
-            Device device=deviceRepo.findDeviceById(idDevice);
+        if (existNtpServerWithDevice(idDevice)) {
+            Device device = deviceRepo.findDeviceById(idDevice);
             Ntpserver ntpserver = ntpServerRepo.findNtpserverByDevice_Id(idDevice);
             //check if exist address in ntp server
             if (ntpAddressRepo.existsByNtpserver_IdAndAddress(ntpserver.getId(), address)) {
@@ -88,7 +88,7 @@ public class NtpServerServiceImpl implements NtpServerService {
                     ntpAddressRepo.deleteByAddress(address);
                 }
             }
-        }else {
+        } else {
             throw new NotFoundException(Message.NON_EXIST_NTPSERVER);
         }
     }
@@ -96,7 +96,7 @@ public class NtpServerServiceImpl implements NtpServerService {
     /**
      * check if exist ntp server with device given id
      */
-    public boolean existNtpServerWithDevice(Long idDevice){
+    public boolean existNtpServerWithDevice(Long idDevice) {
         //check if id device is existed
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);

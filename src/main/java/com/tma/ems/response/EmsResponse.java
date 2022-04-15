@@ -2,6 +2,7 @@ package com.tma.ems.response;
 
 import lombok.Data;
 import org.springframework.http.HttpStatus;
+
 @Data
 public class EmsResponse {
     private HttpStatus httpStatus;

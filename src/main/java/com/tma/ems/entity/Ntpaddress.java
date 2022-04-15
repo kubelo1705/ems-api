@@ -11,27 +11,24 @@ import javax.persistence.*;
 @Entity
 @Table(name = "ntp_address")
 public class Ntpaddress {
+    @Column
+    String address;
+    @Column
+    boolean status = false;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ntpserver_id", nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JsonIgnore
+    Ntpserver ntpserver;
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @Column
-    String address;
-
-    @Column
-    boolean status=false;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ntpserver_id",nullable = false)
-    @EqualsAndHashCode.Exclude @ToString.Exclude
-    @JsonIgnore
-    Ntpserver ntpserver;
-
-    public Ntpaddress(String address, boolean status, Ntpserver ntpservers) {
+    public Ntpaddress(String address, boolean status) {
         this.address = address;
         this.status = status;
-        this.ntpserver = ntpservers;
     }
 
     public Ntpaddress(String address) {

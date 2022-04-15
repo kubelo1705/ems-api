@@ -34,17 +34,17 @@ public class InterfaceServiceImpl implements InterfaceService {
 
     @Override
     public List<Interface> getInterfacesByDeviceId(Long idDevice) {
-        if(deviceRepo.existsById(idDevice)) {
-            if(deviceRepo.existsByIdAndConnected(idDevice,true)) {
+        if (deviceRepo.existsById(idDevice)) {
+            if (deviceRepo.existsByIdAndConnected(idDevice, true)) {
                 List<Interface> interfaces = interfaceRepo.findInterfaceByDevice_Id(idDevice);
                 if (interfaces.isEmpty()) {
                     throw new NotFoundException(Message.NON_EXIST_INTERFACE + " WITH DEVICE ID=" + idDevice);
                 }
                 return interfaces;
-            }else {
+            } else {
                 throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
-        }else {
+        } else {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
     }
@@ -54,32 +54,19 @@ public class InterfaceServiceImpl implements InterfaceService {
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);
             String command = InterfaceParser.parseMapToCommand(Command.INTERFACE_ADD, map);
-            if(device.isConnected()) {
+            if (device.isConnected()) {
                 String output = SshUtils.executeCommand(device, command);
-
+                System.out.println(output);
                 if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                     throw new BadRequestException(CommandParser.formatOutput(output));
                 } else {
                     Port port = portRepo.findPortByPortNameAndDevice_Id(map.get("port_name").toString(), device.getId());
-                    Interface inf=create(map,port,device);
+                    Interface inf = create(map, port, device);
                     return interfaceRepo.save(inf);
                 }
-            }else {
+            } else {
                 throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
-//            if (ValidationUtils.isValidIp(interfaceAdd.getIpAddress())) {
-//                Device device = deviceRepo.findDeviceById(interfaceAdd.getDevice().getId());
-//                String command = CommandUtils.toInterfaceCommand(BaseCommand.ADD_INTERFACE, interfaceAdd);
-//                System.out.println(command);
-//                String output = (CommandUtils.execute(device, device.getCredential(), command));
-//                if (!OutputUtils.isErrorOutput(device.getSerialNumber(), command, output)) {
-//                    return interfaceAdd;
-//                } else {
-//                    throw new EmsException(OutputUtils.formatOutput(output));
-//                }
-//            } else {
-//                throw new EmsException(Message.INVALID_DATA);
-//            }
         } else {
             throw new NotFoundException(Message.NON_EXIST_DEVICE);
         }
@@ -89,7 +76,7 @@ public class InterfaceServiceImpl implements InterfaceService {
     public void deleteInterface(Long idDevice, String interfaceName) {
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);
-            if(device.isConnected()) {
+            if (device.isConnected()) {
                 if (interfaceRepo.existsByNameAndDevice_Id(interfaceName, idDevice)) {
                     String command = Command.INTERFACE_DELETE.replace("interface_name", interfaceName);
                     String output = (SshUtils.executeCommand(device, command));
@@ -102,7 +89,7 @@ public class InterfaceServiceImpl implements InterfaceService {
                 } else {
                     throw new NotFoundException(Message.NON_EXIST_INTERFACE);
                 }
-            }else {
+            } else {
                 throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
         } else {
@@ -115,27 +102,30 @@ public class InterfaceServiceImpl implements InterfaceService {
         if (deviceRepo.existsById(idDevice)) {
             Device device = deviceRepo.findDeviceById(idDevice);
 
-            if(device.isConnected()) {
+            if (device.isConnected()) {
                 if (interfaceRepo.existsByNameAndDevice_Id(map.get("interface_name").toString(), idDevice)) {
 
                     String command = InterfaceParser.parseMapToCommand(Command.INTERFACE_EDIT, map);
                     String output = SshUtils.executeCommand(device, command);
+                    System.out.println(output);
 
                     if (CommandParser.isErrorOutput(device.getSerialNumber(), command, output)) {
                         throw new BadRequestException(CommandParser.formatOutput(output));
                     } else {
                         Interface inf = interfaceRepo.findInterfaceByNameAndDevice_Id(map.get("interface_name").toString(), idDevice);
-                        Port port=portRepo.findPortByPortNameAndDevice_Id(map.get("port_name").toString(),idDevice);
+                        if (map.get("port_name") != null) {
+                            Port port = portRepo.findPortByPortNameAndDevice_Id(map.get("port_name").toString(), idDevice);
+                            inf.setPort(port);
+                        }
 
-                        InterfaceParser.parseMapToInterface(map,inf);
-                        inf.setPort(port);
+                        InterfaceParser.parseMapToInterface(map, inf);
 
                         return interfaceRepo.save(inf);
                     }
                 } else {
                     throw new NotFoundException(Message.NON_EXIST_INTERFACE);
                 }
-            }else {
+            } else {
                 throw new BadRequestException(Message.HAVENT_CREATED_CONNECTION);
             }
         } else {
@@ -145,8 +135,8 @@ public class InterfaceServiceImpl implements InterfaceService {
 
     @Override
     public Interface create(Map<String, Object> map, Port port, Device device) {
-        Interface inf=new Interface();
-        InterfaceParser.parseMapToInterface(map,inf);
+        Interface inf = new Interface();
+        InterfaceParser.parseMapToInterface(map, inf);
         inf.setPort(port);
         inf.setDevice(device);
         return inf;

@@ -10,12 +10,14 @@ import java.util.List;
 public interface CredentialService {
     /**
      * get all credentials from database
+     *
      * @return
      */
     List<Credential> getAllCredentials();
 
     /**
      * add new credential to database and device
+     *
      * @param credential
      * @return
      */
@@ -23,14 +25,16 @@ public interface CredentialService {
 
     /**
      * update an existed interface in device and update to database
+     *
      * @param credential
      * @param id
      * @return
      */
-    Credential updateCredential(Credential credential,Long id);
+    Credential updateCredential(Credential credential, Long id);
 
     /**
      * delete an existed interface in device and update to database
+     *
      * @param id
      * @return
      */
@@ -38,8 +42,9 @@ public interface CredentialService {
 
     /**
      * map new credential to old credential when update
+     *
      * @param newCredential
      * @param credential
      */
-    void mapNewCredentialToCredential(Credential newCredential,Credential credential);
+    void mapNewCredentialToCredential(Credential newCredential, Credential credential);
 }

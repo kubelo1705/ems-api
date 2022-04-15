@@ -25,16 +25,18 @@ public class CredentialServiceImpl implements CredentialService {
 
     @Override
     public List<Credential> getAllCredentials() {
-        List<Credential> credentials=credentialRepo.findAll();
+        List<Credential> credentials = credentialRepo.findAll();
         return credentials;
     }
 
     @Override
     public Credential addCredential(Credential credential) {
-        if(ValidationUtils.isValidCredential(credential)){
-            return credentialRepo.save(credential);
-        }
-        else{
+        if (ValidationUtils.isValidCredential(credential)) {
+            if (!credentialRepo.existsByName(credential.getName()))
+                return credentialRepo.save(credential);
+            else
+                throw new BadRequestException(Message.DUPLICATE_CREDENTIAL);
+        } else {
             throw new BadRequestException(Message.INVALID_DATA);
         }
     }
@@ -43,18 +45,18 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public Credential updateCredential(Credential newCredential, Long id) {
         if (credentialRepo.existsById(id)) {
-            if(!deviceRepo.existsByCredential_Id(id)) {
+            if (!deviceRepo.existsByCredential_Id(id)) {
                 Credential credential = credentialRepo.findCredentialById(id);
                 try {
-                    mapNewCredentialToCredential(newCredential,credential);
+                    mapNewCredentialToCredential(newCredential, credential);
                     return credentialRepo.save(credential);
-                }catch (Exception e){
+                } catch (Exception e) {
                     throw new BadRequestException(Message.INVALID_DATA);
                 }
-            }else{
+            } else {
                 throw new ConflictException(Message.CREDENTIAL_IS_USED);
             }
-        }else{
+        } else {
             throw new NotFoundException(Message.NON_EXIST_CREDENTIAL);
         }
     }
@@ -63,26 +65,26 @@ public class CredentialServiceImpl implements CredentialService {
     @Override
     public boolean deleteCredential(Long id) {
         if (credentialRepo.existsById(id)) {
-            if(!deviceRepo.existsByCredential_Id(id)) {
+            if (!deviceRepo.existsByCredential_Id(id)) {
                 credentialRepo.deleteById(id);
                 return true;
-            }else {
+            } else {
                 throw new ConflictException(Message.CREDENTIAL_IS_USED);
             }
-        }else {
+        } else {
             return false;
         }
     }
 
     @Override
     public void mapNewCredentialToCredential(Credential newCredential, Credential credential) {
-        if(newCredential.getName()!=null) {
+        if (newCredential.getName() != null) {
             credential.setName(newCredential.getName());
         }
-        if(newCredential.getUsername()!=null) {
+        if (newCredential.getUsername() != null) {
             credential.setUsername(newCredential.getUsername());
         }
-        if(newCredential.getPassword()!=null) {
+        if (newCredential.getPassword() != null) {
             credential.setPassword(newCredential.getPassword());
         }
     }

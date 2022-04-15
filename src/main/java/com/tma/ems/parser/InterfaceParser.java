@@ -10,39 +10,41 @@ import java.util.Map;
  * parse data from command to interface object
  */
 public class InterfaceParser {
-    private static final String EMPTY="---";
-    private static final String ENABLED="enabled";
-    private static final String DISABLED="disabled";
+    private static final String EMPTY = "---";
+    private static final String ENABLED = "enabled";
+    private static final String DISABLED = "disabled";
 
     /**
      * map configurations from array to interface
+     *
      * @param configurations
      * @param inf
      */
-    public static void mapArrayConfigurationsToInterface(String[] configurations, Interface inf){
+    public static void mapArrayConfigurationsToInterface(String[] configurations, Interface inf) {
         inf.setName(configurations[0]);
         inf.setState(configurations[1].equalsIgnoreCase(ENABLED));
         inf.setDhcp(configurations[2].equalsIgnoreCase(ENABLED));
-        inf.setIpAddress(configurations[3].equalsIgnoreCase(EMPTY) ?"":configurations[3]);
-        inf.setNetmask(configurations[4].equalsIgnoreCase(EMPTY) ?"":configurations[4]);
-        inf.setGateway(configurations[5].equalsIgnoreCase(EMPTY) ?"":configurations[5]);
-        inf.setInfo(configurations[6].equalsIgnoreCase(EMPTY) ?"":configurations[6]);
+        inf.setIpAddress(configurations[3].equalsIgnoreCase(EMPTY) ? "" : configurations[3]);
+        inf.setNetmask(configurations[4].equalsIgnoreCase(EMPTY) ? "" : configurations[4]);
+        inf.setGateway(configurations[5].equalsIgnoreCase(EMPTY) ? "" : configurations[5]);
+        inf.setInfo(configurations[6].equalsIgnoreCase(EMPTY) ? "" : configurations[6]);
     }
 
     /**
      * parse output command to list interfaces
+     *
      * @param outputCommand
      * @return
      */
-    public static List<Interface> convertOutputCommandToInterfaces(String outputCommand){
-        List<Interface> interfaces=new ArrayList<>();
-        String[] configurations= CommandParser.toArrayConfigurations(outputCommand);
+    public static List<Interface> convertOutputCommandToInterfaces(String outputCommand) {
+        List<Interface> interfaces = new ArrayList<>();
+        String[] configurations = CommandParser.toArrayConfigurations(outputCommand);
 
         for (int i = 2; i < configurations.length; i++) {
-            String configuration=configurations[i];
-            Interface inf=new Interface();
-            String[] properties= CommandParser.toArrayProperties(configuration);
-            mapArrayConfigurationsToInterface(properties,inf);
+            String configuration = configurations[i];
+            Interface inf = new Interface();
+            String[] properties = CommandParser.toArrayProperties(configuration);
+            mapArrayConfigurationsToInterface(properties, inf);
             interfaces.add(inf);
         }
         return interfaces;
@@ -50,15 +52,16 @@ public class InterfaceParser {
 
     /**
      * get port name from interface configurations
+     *
      * @param outputCommand
      * @return
      */
-    public static String getPortNameFromOutputCommand(String outputCommand){
-        String[] pros=outputCommand.split("\\n");
+    public static String getPortNameFromOutputCommand(String outputCommand) {
+        String[] pros = outputCommand.split("\\n");
         for (String pro : pros) {
-            if(pro.contains("On port")){
+            if (pro.contains("On port")) {
                 System.out.println(pro);
-                String[] port=pro.split(":");
+                String[] port = pro.split(":");
                 return port[1];
             }
         }
@@ -67,6 +70,7 @@ public class InterfaceParser {
 
     /**
      * map attribute to interface object
+     *
      * @param baseCommand
      * @param map
      * @return
@@ -74,7 +78,7 @@ public class InterfaceParser {
     public static String parseMapToCommand(String baseCommand, Map<String, Object> map) {
         baseCommand = baseCommand.replace("interface_name", map.get("interface_name") != null ? map.get("interface_name").toString() : "");
 
-        if (map.get("new_interface_name") != null) {
+        if (map.get("new_name") != null) {
             baseCommand = baseCommand.replace("new_name", map.get("new_name").toString());
         }
 
@@ -105,12 +109,13 @@ public class InterfaceParser {
     }
 
     /**
-     * paree data from map to Interface
+     * parse data from map to Interface
+     *
      * @param map
      * @param inf
      */
-    public static void parseMapToInterface(Map<String,Object> map, Interface inf){
-        if(map.get("interface_name")!=null){
+    public static void parseMapToInterface(Map<String, Object> map, Interface inf) {
+        if (map.get("interface_name") != null) {
             inf.setName(map.get("interface_name").toString());
         }
         if (map.get("new_name") != null) {

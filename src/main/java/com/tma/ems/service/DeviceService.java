@@ -8,12 +8,14 @@ import java.util.List;
 public interface DeviceService {
     /**
      * get all devices from database
+     *
      * @return
      */
     List<Device> getAllDevices();
 
     /**
      * add new device to database
+     *
      * @param device
      * @return
      */
@@ -21,6 +23,7 @@ public interface DeviceService {
 
     /**
      * check if device is valid
+     *
      * @param device
      * @return
      */
@@ -28,6 +31,7 @@ public interface DeviceService {
 
     /**
      * get device from database by id
+     *
      * @param id
      * @return
      */
@@ -35,6 +39,7 @@ public interface DeviceService {
 
     /**
      * get device from database by type
+     *
      * @param type
      * @return
      */
@@ -42,6 +47,7 @@ public interface DeviceService {
 
     /**
      * get device in database by ipaddress
+     *
      * @param ipAddress
      * @return
      */
@@ -49,12 +55,14 @@ public interface DeviceService {
 
     /**
      * delete device in data base by id
+     *
      * @param id
      */
     void deleteDeviceById(Long id);
 
     /**
      * check if id is duplicate or not
+     *
      * @param id
      * @return
      */
@@ -62,6 +70,7 @@ public interface DeviceService {
 
     /**
      * reload all configuration of device
+     *
      * @param device
      */
     void reload(Device device);
@@ -69,10 +78,12 @@ public interface DeviceService {
     /**
      * auto reload configuration of device every 15s
      */
-    @Scheduled(fixedDelay = 15000) void autoReload();
+    @Scheduled(fixedDelay = 15000)
+    void autoReload();
 
     /**
      * send a command directly to a managed device
+     *
      * @param idDevice
      * @param command
      * @return
@@ -81,6 +92,7 @@ public interface DeviceService {
 
     /**
      * clean up configuration data before reload device
+     *
      * @param device
      */
     void cleanUpData(Device device);

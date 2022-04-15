@@ -19,10 +19,11 @@ public class NtpParser {
     private static final String ENABLED_ADDRESS = "Enabled server list";
     private static final String DISABLED_ADDRESS = "Disabled server list";
     private static final String END = "Current date";
-    private static final String ENABLED="Enabled";
+    private static final String ENABLED = "Enabled";
 
     /**
      * from data to map data ntp configuration
+     *
      * @param outputCommand
      * @return
      */
@@ -50,6 +51,7 @@ public class NtpParser {
 
     /**
      * format addresses from output of ntp configuration to array address
+     *
      * @param address
      * @return
      */
@@ -66,6 +68,7 @@ public class NtpParser {
 
     /**
      * map data from device to ntp server
+     *
      * @param outputCommand
      * @return
      */
@@ -74,12 +77,18 @@ public class NtpParser {
 
         Ntpserver ntp = mapConfigurationToNtpserver(ntpMap);
 
-        Set<Ntpaddress> enabledAddress = convertAddressToSet(ntpMap.get(ENABLED_ADDRESS), ntp);
+        Set<Ntpaddress> enabledAddress = convertAddressToSet(ntpMap.get(ENABLED_ADDRESS), true);
 
-        Set<Ntpaddress> disabledAddress = convertAddressToSet(ntpMap.get(DISABLED_ADDRESS), ntp);
+        Set<Ntpaddress> disabledAddress = convertAddressToSet(ntpMap.get(DISABLED_ADDRESS), false);
 
         enabledAddress.addAll(disabledAddress);
+        Set<Ntpaddress> total = enabledAddress;
+
+        enabledAddress.forEach(ntpaddress -> {
+            ntpaddress.setNtpserver(ntp);
+        });
         ntp.setNtpaddresses(enabledAddress);
+
 
         return ntp;
     }
@@ -88,14 +97,13 @@ public class NtpParser {
      * Return set address of a ntp server
      *
      * @param addresses
-     * @param ntp
      * @return
      */
-    public static Set<Ntpaddress> convertAddressToSet(String addresses, Ntpserver ntp) {
+    public static Set<Ntpaddress> convertAddressToSet(String addresses, boolean enabled) {
         Set<Ntpaddress> ntpaddresses = new HashSet<>();
         if (!addresses.isBlank()) {
             Arrays.stream((addresses).split(" ")).forEach(address -> {
-                ntpaddresses.add(new Ntpaddress(address, false, ntp));
+                ntpaddresses.add(new Ntpaddress(address, enabled));
             });
         }
         return ntpaddresses;
@@ -103,6 +111,7 @@ public class NtpParser {
 
     /**
      * map configuarions to ntp server
+     *
      * @param configurations
      * @return
      */
@@ -122,6 +131,7 @@ public class NtpParser {
 
     /**
      * get address from lines in command and transfer to string with one line and
+     *
      * @param formattedOutput
      * @param from
      * @param to
@@ -129,16 +139,19 @@ public class NtpParser {
      */
     public static String getEnabledAddressFromFormattedOutputCommand(String formattedOutput, String from, String to) {
         String[] arrayAddresses;
-        String addresses;
+        String addresses = "";
 
         arrayAddresses = formattedOutput.substring(formattedOutput.indexOf(from), formattedOutput.indexOf(to)).split(":");
-
-        addresses = formatStringAddress(arrayAddresses[1]);
+        if (!arrayAddresses[1].trim().isBlank()) {
+            String temp = arrayAddresses[1].trim();
+            addresses = temp.substring(0, temp.indexOf("("));
+        }
         return addresses;
     }
 
     /**
      * get address from lines in command and transfer to string with one line and
+     *
      * @param formattedOutput
      * @param from
      * @return

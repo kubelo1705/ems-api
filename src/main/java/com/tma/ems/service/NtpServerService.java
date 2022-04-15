@@ -6,6 +6,7 @@ import com.tma.ems.entity.Ntpserver;
 public interface NtpServerService {
     /**
      * get ntp server of a managed device by id
+     *
      * @param id
      * @return
      */
@@ -13,6 +14,7 @@ public interface NtpServerService {
 
     /**
      * add a new ntp server to a managed device
+     *
      * @param idDevice
      * @param ntpaddress
      * @return
@@ -21,8 +23,9 @@ public interface NtpServerService {
 
     /**
      * delete a existed ntp server of a manage device and update to database
+     *
      * @param idDevice
      * @param address
      */
-    void deleteNtpserver(Long idDevice,String address);
+    void deleteNtpserver(Long idDevice, String address);
 }

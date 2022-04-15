@@ -7,6 +7,7 @@ import java.util.List;
 public interface PortService {
     /**
      * get port of a managed device
+     *
      * @param id
      * @return
      */

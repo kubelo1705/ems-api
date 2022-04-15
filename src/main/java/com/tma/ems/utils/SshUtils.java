@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class SshUtils {
     private static final String EXPECTED_END_CHARACTER = ": ";
     private static final int DEFAULT_TIMEOUT = 1000;
-    private static String serial="";
+    private static String serial = "";
 
     /**
      * create shell to execute command
@@ -68,11 +68,11 @@ public class SshUtils {
      * send command to device an get comamnd
      */
     public static String executeCommand(Device device, String command) {
-        Credential credential=device.getCredential();
+        Credential credential = device.getCredential();
         String username = credential.getUsername();
         String password = credential.getPassword();
-        if(device.getSerialNumber()!=null && serial!= device.getSerialNumber()){
-            serial=device.getSerialNumber();
+        if (device.getSerialNumber() != null && serial != device.getSerialNumber()) {
+            serial = device.getSerialNumber();
         }
 
         String host = device.getIpAddress();
@@ -82,7 +82,7 @@ public class SshUtils {
         //create session
         ClientSession session = createSession(client, host, username, password, port);
         //create channel
-        ClientChannel channel=createChannel(session);
+        ClientChannel channel = createChannel(session);
         //create output command and error of command
         try (ByteArrayOutputStream responseStream = new ByteArrayOutputStream();
              ByteArrayOutputStream errorStream = new ByteArrayOutputStream()) {
@@ -101,12 +101,12 @@ public class SshUtils {
                 //close channel
                 channel.waitFor(EnumSet.of(ClientChannelEvent.CLOSED),
                         TimeUnit.SECONDS.toMillis(DEFAULT_TIMEOUT));
-            }finally{
+            } finally {
                 //close ssh connection
-                close(client,session);
+                close(client, session);
                 return responseStream.toString();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new ServerException(e.getMessage());
         }
     }
@@ -114,11 +114,11 @@ public class SshUtils {
     /**
      * wait for flush response
      */
-    public static void waitForResponse(ByteArrayOutputStream responseStream){
-        boolean isCompleted=false;
+    public static void waitForResponse(ByteArrayOutputStream responseStream) {
+        boolean isCompleted = false;
         while (!isCompleted) {
             String output = responseStream.toString();
-            if (output.endsWith(serial+EXPECTED_END_CHARACTER)) {
+            if (output.endsWith(serial + EXPECTED_END_CHARACTER)) {
                 isCompleted = true;
             }
         }

@@ -11,22 +11,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class EmsExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity handleNotFoundException(Exception e){
+    public ResponseEntity handleNotFoundException(Exception e) {
         return ResponseEntity.status(404).body(e.getMessage());
     }
 
     @ExceptionHandler(ConflictException.class)
-    public ResponseEntity handleConflictException(Exception e){
+    public ResponseEntity handleConflictException(Exception e) {
         return ResponseEntity.status(409).body(e.getMessage());
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity handleBadRequestException(Exception e){
+    public ResponseEntity handleBadRequestException(Exception e) {
         return ResponseEntity.status(400).body(e.getMessage());
     }
 
     @ExceptionHandler(ServerException.class)
-    public ResponseEntity handleServerException(Exception e){
+    public ResponseEntity handleServerException(Exception e) {
         return ResponseEntity.status(500).body(e.getMessage());
     }
 }

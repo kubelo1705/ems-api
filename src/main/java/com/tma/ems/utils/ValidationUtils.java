@@ -9,9 +9,9 @@ public class ValidationUtils {
     /**
      * valid ipv4
      */
-    public static boolean isValidIp(String ip){
-        String[] subIps=ip.split("\\.");
-        try{
+    public static boolean isValidIp(String ip) {
+        String[] subIps = ip.split("\\.");
+        try {
             for (String subIp : subIps) {
                 int subIpInt = Integer.parseInt(subIp);
                 if (subIpInt < 0 && subIpInt >= 255) {
@@ -19,7 +19,7 @@ public class ValidationUtils {
                 }
             }
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
@@ -27,9 +27,9 @@ public class ValidationUtils {
     /**
      * valid subnet mask ip
      */
-    public static boolean isValidNetmask(String netmask){
-        String[] subIps=netmask.split("\\.");
-        try{
+    public static boolean isValidNetmask(String netmask) {
+        String[] subIps = netmask.split("\\.");
+        try {
             for (String subIp : subIps) {
                 int subIpInt = Integer.parseInt(subIp);
                 if (subIpInt != 0 && subIpInt != 255) {
@@ -37,7 +37,7 @@ public class ValidationUtils {
                 }
             }
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
     }
@@ -45,14 +45,11 @@ public class ValidationUtils {
     /**
      * valid credential
      */
-    public static boolean isValidCredential(Credential credential){
-        String name=credential.getName();
-        String username= credential.getUsername();
-        String password= credential.getPassword();
-        if(name !=null && username!=null && !username.contains(" ") && password!=null && !password.contains(" ")){
-            return true;
-        }
-        return false;
+    public static boolean isValidCredential(Credential credential) {
+        String name = credential.getName();
+        String username = credential.getUsername();
+        String password = credential.getPassword();
+        return name != null && username != null && !username.contains(" ") && password != null && !password.contains(" ");
     }
 
 }
